@@ -65,6 +65,10 @@
                     <button id="archiveBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         Archive Selected
                     </button>
+                    <!-- New Print Selected Button -->
+                    <button id="printSelectedBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Print Selected
+                    </button>
                     <button id="exportCsvBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         Export Selected to CSV
                     </button>
@@ -159,11 +163,13 @@
         const updateActionButtonsState = () => {
             const exportBtn = document.getElementById('exportCsvBtn');
             const archiveBtn = document.getElementById('archiveBtn');
+            const printBtn = document.getElementById('printSelectedBtn');
             const selectedCheckboxes = document.querySelectorAll('.entry-checkbox:checked');
             const hasSelection = selectedCheckboxes.length > 0;
             
             exportBtn.disabled = !hasSelection;
             archiveBtn.disabled = !hasSelection;
+            printBtn.disabled = !hasSelection;
         };
         
         const escapeCsvCell = (cell) => {
@@ -446,8 +452,196 @@
                 margin: 0.5,
                 filename: filename,
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                html2canvas: { useCORS: true }
+                html2canvas: { useCORS: true, scale: 2 }
              }).save();
+        };
+
+        const printSelectedEntries = async () => {
+            const selectedCheckboxes = document.querySelectorAll('.entry-checkbox:checked');
+            if (selectedCheckboxes.length === 0) return;
+
+            const button = document.getElementById('printSelectedBtn');
+            const originalText = button.textContent;
+            button.textContent = 'Generating...';
+            button.disabled = true;
+
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+            const entriesToPrint = allEntries
+                .filter(entry => selectedIds.includes(entry.id))
+                .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // Sort newest first for printing
+
+            let combinedHtml = `
+                <style>
+                    body { 
+                        font-family: 'Inter', sans-serif; 
+                        font-size: 11px; /* Smaller base font */
+                        color: #333; 
+                    }
+                    .header { 
+                        text-align: center; 
+                        border-bottom: 2px solid #ccc; 
+                        padding-bottom: 8px; /* Reduced */
+                        margin-bottom: 15px; /* Reduced */
+                    }
+                    .header h1 { margin: 0; font-size: 18px; } /* Reduced */
+                    .header p { margin: 0; font-size: 12px; color: #555; } /* Reduced */
+
+                    .entry-container { 
+                        page-break-inside: avoid !important; /* Try to keep the whole block on one page */
+                        page-break-after: always; 
+                        border: 1px solid #ddd; 
+                        padding: 10px; /* Reduced */
+                        margin: 0 0 15px 0; /* Reduced margin */
+                        border-radius: 5px; 
+                    }
+                    .entry-container:last-child { 
+                        page-break-after: auto; 
+                    }
+                    .section { 
+                        margin-bottom: 8px; /* Reduced */
+                        border: 1px solid #eee; 
+                        padding: 8px; /* Reduced */
+                        border-radius: 4px; 
+                    }
+                    .section:last-child {
+                         margin-bottom: 0;
+                    }
+                    .section h3 { 
+                        font-size: 12px; /* Reduced */
+                        margin-top: 0; 
+                        border-bottom: 1px solid #eee; 
+                        padding-bottom: 4px; /* Reduced */
+                        margin-bottom: 6px; /* Reduced */
+                    }
+                    p { 
+                        margin: 3px 0; /* Reduced */
+                    }
+                    strong { 
+                        color: #000; 
+                    }
+                    img { 
+                        display: block;
+                        margin: 5px auto 0 auto; /* Center image and add some top margin */
+                        max-width: 100%; 
+                        max-height: 300px; /* Reduced significantly */
+                        object-fit: contain; 
+                        border: 1px solid #ccc; 
+                        border-radius: 4px; 
+                    }
+                </style>
+                <div class="header">
+                    <h1>Fuel Purchase Report</h1>
+                    <p>Springfield Township Fire/EMS</p>
+                </div>
+            `;
+
+            // Asynchronously fetch all receipt images and convert them to data URLs
+            const imagePromises = entriesToPrint.map(entry => {
+                if (!entry.receiptUrl) return Promise.resolve({ ...entry, receiptDataUrl: null });
+                return new Promise(async (resolve) => {
+                    try {
+                        const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(entry.receiptUrl)}`;
+                        const response = await fetch(proxiedUrl);
+                        const blob = await response.blob();
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve({ ...entry, receiptDataUrl: reader.result });
+                        reader.onerror = () => resolve({ ...entry, receiptDataUrl: 'error' });
+                        reader.readAsDataURL(blob);
+                    } catch (error) {
+                        console.error("Error fetching receipt image:", error);
+                        resolve({ ...entry, receiptDataUrl: 'error' });
+                    }
+                });
+            });
+
+            const entriesWithImageData = await Promise.all(imagePromises);
+
+            // Build the HTML content for each entry
+            entriesWithImageData.forEach(entry => {
+                let displayDate = 'No Date';
+                if (entry.date) {
+                    const dateParts = entry.date.split('-');
+                    const utcDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+                    displayDate = utcDate.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+                }
+                
+                let otherItemsHtml = '';
+                if (entry['other-items'] || entry['other-items-amount']) {
+                    otherItemsHtml = `
+                        <div class="section">
+                            <h3>Other Items</h3>
+                            <p><strong>Items:</strong> ${entry['other-items'] || 'N/A'}</p>
+                            <p><strong>Reason:</strong> ${entry['reason-other-items'] || 'N/A'}</p>
+                            <p><strong>Amount:</strong> ${formatCurrency(entry['other-items-amount'])}</p>
+                        </div>
+                    `;
+                }
+
+                let receiptHtml = '';
+                if (entry.receiptDataUrl && entry.receiptDataUrl !== 'error') {
+                    receiptHtml = `<div class="section"><h3>Receipt Image</h3><img src="${entry.receiptDataUrl}" alt="Receipt Image"></div>`;
+                } else if (entry.receiptUrl) {
+                     receiptHtml = `<div class="section"><h3>Receipt Image</h3><p>Could not load image.</p></div>`;
+                }
+
+                combinedHtml += `
+                    <div class="entry-container">
+                        <div class="section">
+                            <h3>Purchase Details</h3>
+                            <p><strong>Date:</strong> ${displayDate}</p>
+                            <p><strong>Apparatus:</strong> ${entry.apparatus || 'N/A'}</p>
+                            <p><strong>Purchased By:</strong> ${entry.purchaser || 'N/A'}</p>
+                        </div>
+                        <div class="section">
+                            <h3>Fuel Information</h3>
+                            <p><strong>Total Fuel Amount:</strong> ${formatCurrency(entry['fuel-amount'])}</p>
+                            <p><strong>Gallons Purchased:</strong> ${entry.gallons || 'N/A'}</p>
+                            <p><strong>Price per Gallon:</strong> ${formatCurrency(entry['price-per-gallon'])}</p>
+                            <p><strong>Odometer:</strong> ${entry.odometer || 'N/A'}</p>
+                        </div>
+                        ${otherItemsHtml}
+                        ${receiptHtml}
+                    </div>
+                `;
+            });
+
+            const element = document.createElement('div');
+            element.innerHTML = combinedHtml;
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `Fuel_Entries_Print_${date}.pdf`;
+            const opt = {
+                margin: 0.5,
+                filename: filename,
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                html2canvas: { useCORS: true, scale: 2 }
+            };
+
+            html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
+                // Add page numbers
+                var totalPages = pdf.internal.getNumberOfPages();
+                for (var i = 1; i <= totalPages; i++) {
+                  pdf.setPage(i);
+                  pdf.setFontSize(10);
+                  pdf.setTextColor(150);
+                  pdf.text('Page ' + i + ' of ' + totalPages, pdf.internal.pageSize.getWidth() - 1.2, pdf.internal.pageSize.getHeight() - 0.5);
+                }
+                pdf.autoPrint();
+                pdf.output('dataurlnewwindow');
+
+                // Restore button state
+                button.textContent = originalText;
+                button.disabled = false; 
+                updateActionButtonsState();
+
+            }).catch(err => {
+                console.error("Error during PDF printing:", err);
+                button.textContent = "Error!";
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    updateActionButtonsState();
+                }, 2000);
+            });
         };
 
         const renderEntries = (entries) => {
@@ -593,6 +787,7 @@
         document.getElementById('importCsvBtn').addEventListener('click', () => document.getElementById('csvFileInput').click());
         document.getElementById('csvFileInput').addEventListener('change', handleCsvImport);
         document.getElementById('archiveBtn').addEventListener('click', () => archiveSelectedEntries(!isViewingArchived));
+        document.getElementById('printSelectedBtn').addEventListener('click', printSelectedEntries);
         document.getElementById('viewToggle').addEventListener('click', (e) => {
             e.preventDefault();
             isViewingArchived = !isViewingArchived;
@@ -647,6 +842,10 @@
     </script>
 </body>
 </html>
+
+
+
+
 
 
 

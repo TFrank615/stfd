@@ -109,7 +109,9 @@
             
             <div>
                 <label for="purchaser" class="block text-sm font-medium text-gray-700">Person purchasing Fuel/Other items:</label>
-                <input type="text" id="purchaser" name="purchaser" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <select id="purchaser" name="purchaser" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Loading...</option>
+                </select>
             </div>
 
             <div>
@@ -141,6 +143,88 @@
         const dd = String(today.getDate()).padStart(2, '0');
         const formattedDate = `${yyyy}-${mm}-${dd}`;
         document.getElementById('date').value = formattedDate;
+
+        // --- Populate Members Dropdown ---
+        async function populateMembersDropdown() {
+            const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRA3t8n-x-kjPbORC3JzajoQGHC5OUe5XDfVM_TDZfgIarvkoHC1bBaEDqk-sK0FbEKJWaDH_m_LjTM/pub?gid=750940377&single=true&output=csv';
+            const purchaserSelect = document.getElementById('purchaser');
+            
+            /**
+             * A simple CSV parser that handles quoted fields containing commas.
+             * @param {string} row - A single row from a CSV file.
+             * @returns {string[]} An array of fields.
+             */
+            const parseCsvRow = (row) => {
+                const fields = [];
+                let currentField = '';
+                let inQuotedField = false;
+
+                for (let i = 0; i < row.length; i++) {
+                    const char = row[i];
+
+                    if (char === '"') {
+                        // Check for escaped quote ("")
+                        if (inQuotedField && row[i + 1] === '"') {
+                            currentField += '"';
+                            i++; // Skip the next quote
+                        } else {
+                            inQuotedField = !inQuotedField;
+                        }
+                    } else if (char === ',' && !inQuotedField) {
+                        fields.push(currentField);
+                        currentField = '';
+                    } else {
+                        currentField += char;
+                    }
+                }
+                fields.push(currentField); // Add the last field
+                return fields;
+            };
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch spreadsheet data.');
+                
+                const csvText = await response.text();
+                const rows = csvText.trim().split(/\r?\n/); // Split by newline, handling Windows/Unix
+
+                if (rows.length < 2) { // Need at least a header and one data row
+                    throw new Error('CSV data is empty or invalid.');
+                }
+                
+                const header = parseCsvRow(rows[0]);
+                const memberColumnIndex = header.findIndex(h => h.trim() === 'Member');
+
+                if (memberColumnIndex === -1) {
+                    throw new Error('Could not find "Member" column in the Google Sheet.');
+                }
+
+                purchaserSelect.innerHTML = '<option value="">Select Purchaser</option>'; // Clear "Loading..."
+
+                // Start from the second row (index 1) to skip the header
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row) continue; // Skip empty lines
+
+                    const fields = parseCsvRow(row);
+                    
+                    if (fields.length > memberColumnIndex) {
+                        const memberName = fields[memberColumnIndex].trim();
+                        if (memberName) {
+                            const option = document.createElement('option');
+                            option.value = memberName;
+                            option.textContent = memberName;
+                            purchaserSelect.appendChild(option);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading members:', error);
+                purchaserSelect.innerHTML = `<option value="">${error.message}</option>`;
+            }
+        }
+
+        populateMembersDropdown();
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -261,5 +345,4 @@
     </script>
 </body>
 </html>
-
 
