@@ -281,11 +281,13 @@
             const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
 
             if (selectedIds.length === 0) {
-                // This check is redundant due to button state, but good for safety
                 return;
             }
 
             const entriesToExport = allEntries.filter(entry => selectedIds.includes(entry.id));
+
+            // Sort entries chronologically (oldest to newest) before exporting
+            entriesToExport.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
             const headers = [
                 'Date', 'Apparatus', 'Odometer', 'Gallons Purchased', 'Fuel Amount', 'Price per Gallon',
@@ -645,5 +647,6 @@
     </script>
 </body>
 </html>
+
 
 
