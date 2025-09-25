@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Fuel Entries</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Saved Fuel Entries</h1>
+            <p class="text-lg md:text-xl text-gray-700">Springfield Township Fire/EMS</p>
+        </header>
+
+        <div class="text-center mb-6">
+             <a href="index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition">
+                ← Back to Fuel Form
+            </a>
+        </div>
+
+        <!-- Saved Entries Display -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-3 border-b pb-2 text-gray-900">All Fuel Entries</h2>
+            <div id="fuelEntriesList" class="space-y-4">
+                <p class="text-gray-500">Loading entries...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-4zB5WLhdpb6yhKEy6SZ2I5FS-ipgIBY",
+            authDomain: "stfd-fuel-form.firebaseapp.com",
+            projectId: "stfd-fuel-form",
+            storageBucket: "stfd-fuel-form.firebasestorage.app",
+            messagingSenderId: "420570035631",
+            appId: "1:420570035631:web:5da57666c0d49d02d7eb5a",
+            measurementId: "G-VMRETXFSZB"
+        };
+        const appId = firebaseConfig.appId;
+
+        let app, db;
+        let allEntries = []; // Store entries for PDF generation access
+
+        try {
+             app = initializeApp(firebaseConfig);
+             db = getFirestore(app);
+             console.log("Fuel view Firebase initialized.");
+        } catch(e) {
+            console.error("Firebase initialization error:", e);
+            document.getElementById('fuelEntriesList').innerHTML = `<p class="text-red-500">Error: Could not connect to the database.</p>`;
+        }
+
+        const getFuelCollection = () => {
+            if (!db) return null;
+            return collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+        };
+        
+        const formatCurrency = (value) => {
+            const num = parseFloat(value);
+            return isNaN(num) ? 'N/A' : num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        };
+        
+        const generatePdfForEntry = async (entry) => {
+             const dateForTitle = entry.date || 'N_A';
+             const apparatusForTitle = entry.apparatus || 'N_A';
+             const filename = `Fuel_Receipt_${apparatusForTitle}_${dateForTitle}.pdf`;
+
+             let displayDate = 'No Date';
+             if (entry.date) {
+                 const dateParts = entry.date.split('-');
+                 const utcDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+                 displayDate = utcDate.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+             }
+             
+             let otherItemsHtml = '';
+             if (entry['other-items'] || entry['other-items-amount']) {
+                 otherItemsHtml = `
+                    <div class="section">
+                        <h3>Other Items</h3>
+                        <p><strong>Items:</strong> ${entry['other-items'] || 'N/A'}</p>
+                        <p><strong>Reason:</strong> ${entry['reason-other-items'] || 'N/A'}</p>
+                        <p><strong>Amount:</strong> ${formatCurrency(entry['other-items-amount'])}</p>
+                    </div>
+                 `;
+             }
+             
+             let receiptHtml = '';
+             if (entry.receiptUrl) {
+                try {
+                    const response = await fetch(entry.receiptUrl);
+                    const blob = await response.blob();
+                    const dataUrl = await new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                     receiptHtml = `
+                        <div class="section">
+                            <h3>Receipt Image</h3>
+                            <img src="${dataUrl}" style="max-width: 100%; border: 1px solid #ccc; border-radius: 4px;" alt="Receipt Image">
+                        </div>
+                     `;
+                } catch (error) {
+                    console.error("Error fetching or converting receipt image:", error);
+                    receiptHtml = `<div class="section"><h3>Receipt Image</h3><p>Could not load image.</p></div>`;
+                }
+             }
+
+             const content = `
+                <style>
+                    body { font-family: 'Inter', sans-serif; font-size: 12px; color: #333; }
+                    .header { text-align: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+                    .header h1 { margin: 0; font-size: 20px; }
+                    .header p { margin: 0; font-size: 14px; color: #555; }
+                    .section { margin-bottom: 15px; border: 1px solid #eee; padding: 10px; border-radius: 5px; page-break-inside: avoid; }
+                    .section h3 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px;}
+                    p { margin: 5px 0; }
+                    strong { color: #000; }
+                </style>
+                <div class="header">
+                    <h1>Fuel Purchase Report</h1>
+                    <p>Springfield Township Fire/EMS</p>
+                </div>
+                <div class="section">
+                    <h3>Purchase Details</h3>
+                    <p><strong>Date:</strong> ${displayDate}</p>
+                    <p><strong>Apparatus:</strong> ${entry.apparatus || 'N/A'}</p>
+                    <p><strong>Purchased By:</strong> ${entry.purchaser || 'N/A'}</p>
+                </div>
+                 <div class="section">
+                    <h3>Fuel Information</h3>
+                    <p><strong>Total Fuel Amount:</strong> ${formatCurrency(entry['fuel-amount'])}</p>
+                    <p><strong>Gallons Purchased:</strong> ${entry.gallons || 'N/A'}</p>
+                    <p><strong>Price per Gallon:</strong> ${formatCurrency(entry['price-per-gallon'])}</p>
+                    <p><strong>Odometer:</strong> ${entry.odometer || 'N/A'}</p>
+                </div>
+                ${otherItemsHtml}
+                ${receiptHtml}
+             `;
+             
+             const element = document.createElement('div');
+             element.innerHTML = content;
+             
+             html2pdf().from(element).set({
+                margin: 0.5,
+                filename: filename,
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                html2canvas: { useCORS: true }
+             }).save();
+        };
+
+        const renderEntries = (entries) => {
+            const listElement = document.getElementById('fuelEntriesList');
+            if (entries.length === 0) {
+                listElement.innerHTML = `<p class="text-gray-500">No fuel entries saved yet.</p>`;
+                return;
+            }
+
+            listElement.innerHTML = '';
+            entries.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+
+            entries.forEach(entry => {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'border rounded-md bg-gray-50 p-4';
+                
+                let displayDate = 'No Date';
+                if (entry.date) {
+                    const dateParts = entry.date.split('-');
+                    const utcDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+                    displayDate = utcDate.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+                }
+
+                let otherItemsInfo = '';
+                if(entry['other-items'] || entry['other-items-amount']){
+                    otherItemsInfo = `
+                        <div class="mt-2 pt-2 border-t">
+                             <p class="text-sm"><span class="font-medium">Other Items:</span> ${entry['other-items'] || 'N/A'}</p>
+                             <p class="text-sm"><span class="font-medium">Reason:</span> ${entry['reason-other-items'] || 'N/A'}</p>
+                             <p class="text-sm"><span class="font-medium">Other Items Amount:</span> ${formatCurrency(entry['other-items-amount'])}</p>
+                        </div>
+                    `;
+                }
+
+                let receiptInfo = '';
+                if (entry.receiptUrl) {
+                    receiptInfo = `
+                        <div class="mt-2 pt-2 border-t">
+                            <p class="text-sm font-medium">Receipt:</p>
+                            <a href="${entry.receiptUrl}" target="_blank" rel="noopener noreferrer">
+                                <img src="${entry.receiptUrl}" alt="Receipt" class="mt-1 rounded-md max-h-32 cursor-pointer hover:opacity-80 transition"/>
+                            </a>
+                        </div>
+                    `;
+                }
+
+                itemContainer.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-gray-800"><span class="text-blue-600">${displayDate}</span></p>
+                            <p class="text-md text-gray-700"><span class="font-medium">Apparatus:</span> ${entry.apparatus || 'N/A'}</p>
+                            <p class="text-sm text-gray-600"><span class="font-medium">Purchased By:</span> ${entry.purchaser || 'N/A'}</p>
+                        </div>
+                        <div class="text-right">
+                             <p class="text-lg font-bold text-green-600">${formatCurrency(entry['fuel-amount'])}</p>
+                             <p class="text-sm text-gray-500">${entry.gallons || 'N/A'} gal @ ${formatCurrency(entry['price-per-gallon'])}/gal</p>
+                             <p class="text-sm text-gray-500">Odometer: ${entry.odometer || 'N/A'}</p>
+                        </div>
+                    </div>
+                    ${otherItemsInfo}
+                    ${receiptInfo}
+                    <div class="text-right mt-3">
+                        <button data-id="${entry.id}" class="download-pdf-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md text-sm shadow transition disabled:opacity-50">
+                            Download PDF
+                        </button>
+                    </div>
+                `;
+                listElement.appendChild(itemContainer);
+            });
+        };
+
+        document.getElementById('fuelEntriesList').addEventListener('click', async (event) => {
+            if (event.target.classList.contains('download-pdf-btn')) {
+                const button = event.target;
+                const entryId = button.dataset.id;
+                const entry = allEntries.find(e => e.id === entryId);
+                
+                if (entry) {
+                    const originalText = button.textContent;
+                    button.textContent = 'Generating...';
+                    button.disabled = true;
+
+                    try {
+                        await generatePdfForEntry(entry);
+                    } catch (error) {
+                        console.error("PDF Generation failed:", error);
+                        alert("Failed to generate PDF. Please try again.");
+                    } finally {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }
+                }
+            }
+        });
+
+        const main = () => {
+            const collectionRef = getFuelCollection();
+            if (collectionRef) {
+                onSnapshot(query(collectionRef), (snapshot) => {
+                    allEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderEntries(allEntries);
+                });
+            }
+        };
+        main();
+    </script>
+</body>
+</html>
+

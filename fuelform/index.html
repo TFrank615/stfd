@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuel Purchase Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 max-w-2xl">
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Springfield Township Fire/EMS</h1>
+            <p class="text-lg md:text-xl text-gray-700">Fuel Purchase Tracking Sheet</p>
+        </header>
+
+        <!-- Fuel Form -->
+        <div id="fuel-form-container" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            
+            <div>
+                <label for="date" class="block text-sm font-medium text-gray-700">Date:</label>
+                <input type="date" id="date" name="date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="apparatus" class="block text-sm font-medium text-gray-700">Apparatus Fuel Purchased for:</label>
+                <input type="text" id="apparatus" name="apparatus" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder='(If Fuel cans write: "Fuel can L58")'>
+            </div>
+
+            <div>
+                <label for="odometer" class="block text-sm font-medium text-gray-700">Odometer reading:</label>
+                <input type="number" id="odometer" name="odometer" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="gallons" class="block text-sm font-medium text-gray-700">Gallons Purchased:</label>
+                    <input type="number" step="0.01" id="gallons" name="gallons" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="price-per-gallon" class="block text-sm font-medium text-gray-700">Price per Gallon:</label>
+                    <div class="relative mt-1 rounded-md shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                        <input type="number" step="0.001" id="price-per-gallon" name="price-per-gallon" class="block w-full rounded-md border-gray-300 pl-7 p-2 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label for="fuel-amount" class="block text-sm font-medium text-gray-700">Fuel Amount:</label>
+                     <div class="relative mt-1 rounded-md shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                        <input type="number" step="0.01" id="fuel-amount" name="fuel-amount" class="block w-full rounded-md border-gray-300 pl-7 p-2 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t pt-4">
+                <h3 class="text-lg font-semibold text-gray-800">Other Items (If Applicable)</h3>
+            </div>
+
+            <div>
+                <label for="other-items" class="block text-sm font-medium text-gray-700">If items OTHER THAN fuel purchased:</label>
+                <input type="text" id="other-items" name="other-items" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="(Ex.: Water, ice or gatorade)">
+            </div>
+            
+            <div>
+                <label for="reason-other-items" class="block text-sm font-medium text-gray-700">Reason other items purchased:</label>
+                <input type="text" id="reason-other-items" name="reason-other-items" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="(Ex.: Fire scene rehab Supplies)">
+            </div>
+
+            <div>
+                <label for="other-items-amount" class="block text-sm font-medium text-gray-700">Other Items Amount:</label>
+                <div class="relative mt-1 rounded-md shadow-sm">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                    <input type="number" step="0.01" id="other-items-amount" name="other-items-amount" class="block w-full rounded-md border-gray-300 pl-7 p-2 focus:border-blue-500 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <div>
+                <label for="purchaser" class="block text-sm font-medium text-gray-700">Person purchasing Fuel/Other items:</label>
+                <input type="text" id="purchaser" name="purchaser" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="receipt" class="block text-sm font-medium text-gray-700">Attach Photo of Receipt:</label>
+                <input type="file" id="receipt" name="receipt" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <img id="receipt-preview" src="" alt="Receipt Preview" class="mt-2 rounded-md max-h-48 hidden"/>
+            </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-6 space-x-4">
+            <button id="saveFuelEntryButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Save Entry
+            </button>
+            <a href="view_fuel_entries.html" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                View Fuel Entries
+            </a>
+        </div>
+        
+        <footer class="text-center mt-6">
+            <p class="text-xs text-gray-600">Fill out sheet, attach Fuel/Other Item receipts and drop in report box.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // --- PASTE YOUR GOOGLE WEB APP URL HERE ---
+        const googleWebAppUrl = 'https://script.google.com/macros/s/AKfycbww78v7Kr-LhOFlqu0tWAUz90wHirEm6bVu2FrFtFU1lgAqnmqOW7Q_ZFyhsEOTvNa7/exec';
+
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-4zB5WLhdpb6yhKEy6SZ2I5FS-ipgIBY",
+            authDomain: "stfd-fuel-form.firebaseapp.com",
+            projectId: "stfd-fuel-form",
+            storageBucket: "stfd-fuel-form.appspot.com", // Corrected storage bucket
+            messagingSenderId: "420570035631",
+            appId: "1:420570035631:web:5da57666c0d49d02d7eb5a",
+            measurementId: "G-VMRETXFSZB"
+        };
+        const appId = firebaseConfig.appId;
+        
+        let app, db;
+        try {
+             app = initializeApp(firebaseConfig);
+             db = getFirestore(app);
+             console.log("Fuel form Firebase initialized.");
+        } catch(e) {
+            console.error("Firebase initialization error:", e);
+            alert("Error: Could not connect to the database.");
+        }
+
+        const receiptInput = document.getElementById('receipt');
+        const receiptPreview = document.getElementById('receipt-preview');
+
+        receiptInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                receiptPreview.src = URL.createObjectURL(file);
+                receiptPreview.classList.remove('hidden');
+            } else {
+                receiptPreview.src = '';
+                receiptPreview.classList.add('hidden');
+            }
+        });
+
+        const getFuelCollection = () => {
+            if (!db) return null;
+            return collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+        };
+
+        const getFormData = () => {
+            const formData = {};
+            document.querySelectorAll('#fuel-form-container input[type="text"], #fuel-form-container input[type="number"], #fuel-form-container input[type="date"]').forEach(input => {
+                if (input.id) {
+                    formData[input.id] = input.value;
+                }
+            });
+            return formData;
+        };
+
+        async function sendToGoogleSheet(data) {
+            if (!googleWebAppUrl || googleWebAppUrl === 'YOUR_WEB_APP_URL_HERE') {
+                console.warn('Google Web App URL is not set. Skipping sheet submission.');
+                return; // Don't try to send if the URL isn't set
+            }
+            try {
+                const response = await fetch(googleWebAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // Important for sending to Google Apps Script from a browser
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+                console.log('Successfully sent data to Google Sheet proxy.');
+            } catch (error) {
+                console.error('Error sending data to Google Sheet:', error);
+                // Optionally alert the user that the sheet submission failed
+                // alert('Could not save the entry to Google Sheets. It has been saved to the internal database.');
+            }
+        }
+
+        document.getElementById('saveFuelEntryButton').addEventListener('click', async () => {
+            const saveButton = document.getElementById('saveFuelEntryButton');
+            const collectionRef = getFuelCollection();
+            
+            const data = getFormData();
+            if (!data.date || !data.apparatus || !data.purchaser) {
+                alert("Please fill out Date, Apparatus, and Purchaser fields.");
+                return;
+            }
+
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+            const receiptFile = document.getElementById('receipt').files[0];
+
+            try {
+                // 1. Upload receipt if it exists
+                if (receiptFile) {
+                    saveButton.textContent = 'Uploading Receipt...';
+                    const storage = getStorage(app);
+                    const storageRef = ref(storage, `receipts/${Date.now()}_${receiptFile.name}`);
+                    const uploadResult = await uploadBytes(storageRef, receiptFile);
+                    const downloadURL = await getDownloadURL(uploadResult.ref);
+                    data.receiptUrl = downloadURL;
+                }
+
+                // 2. Save to Firebase
+                if (collectionRef) {
+                    saveButton.textContent = 'Saving to Database...';
+                    const dataForFirebase = { ...data, createdAt: serverTimestamp() };
+                    await addDoc(collectionRef, dataForFirebase);
+                } else {
+                     alert("Cannot save to database: Connection not available.");
+                }
+
+                // 3. Send to Google Sheet
+                saveButton.textContent = 'Saving to Sheet...';
+                await sendToGoogleSheet(data);
+
+                alert('Fuel entry saved successfully!');
+                window.location.reload();
+
+            } catch (error) {
+                console.error("Error during save process: ", error);
+                alert("An error occurred. Please check the console for details.");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Entry';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
