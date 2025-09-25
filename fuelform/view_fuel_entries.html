@@ -22,16 +22,55 @@
             <p class="text-lg md:text-xl text-gray-700">Springfield Township Fire/EMS</p>
         </header>
 
-        <div class="text-center mb-6">
-             <a href="index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition">
-                ← Back to Fuel Form
-            </a>
+        <div class="flex justify-center items-center space-x-4 mb-6">
+            <a href="#" id="viewToggle" class="text-blue-600 hover:underline">View Archived Entries</a>
         </div>
 
         <!-- Saved Entries Display -->
         <div class="bg-white p-4 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-3 border-b pb-2 text-gray-900">All Fuel Entries</h2>
-            <div id="fuelEntriesList" class="space-y-4">
+            <div class="flex justify-start items-center space-x-4 mb-4 pb-4 border-b">
+                <select id="monthFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">All Months</option>
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select id="yearFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">All Years</option>
+                    <!-- Years will be populated dynamically -->
+                </select>
+                <button id="clearFilterBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
+                    Clear Filter
+                </button>
+            </div>
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="selectAllCheckbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                    <label for="selectAllCheckbox" id="entriesListTitle" class="text-xl font-semibold text-gray-900 cursor-pointer select-none">All Fuel Entries</label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="importCsvBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition">
+                        Import CSV
+                    </button>
+                    <input type="file" id="csvFileInput" hidden accept=".csv">
+                    <button id="archiveBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Archive Selected
+                    </button>
+                    <button id="exportCsvBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Export Selected to CSV
+                    </button>
+                </div>
+            </div>
+            <div id="fuelEntriesList" class="space-y-2">
                 <p class="text-gray-500">Loading entries...</p>
             </div>
         </div>
@@ -39,7 +78,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, doc, writeBatch, where, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -54,7 +93,9 @@
         const appId = firebaseConfig.appId;
 
         let app, db;
-        let allEntries = []; // Store entries for PDF generation access
+        let allEntries = []; // Store entries for PDF and CSV generation access
+        let isViewingArchived = false;
+        let unsubscribe; // To store the unsubscribe function for the snapshot listener
 
         try {
              app = initializeApp(firebaseConfig);
@@ -64,10 +105,252 @@
             console.error("Firebase initialization error:", e);
             document.getElementById('fuelEntriesList').innerHTML = `<p class="text-red-500">Error: Could not connect to the database.</p>`;
         }
+        
+        const populateYearFilter = (entries) => {
+            const yearFilter = document.getElementById('yearFilter');
+            const selectedYear = yearFilter.value;
+            const years = [...new Set(entries.map(e => e.date ? e.date.substring(0, 4) : null).filter(Boolean))];
+            years.sort((a, b) => b.localeCompare(a));
 
-        const getFuelCollection = () => {
-            if (!db) return null;
-            return collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+            while (yearFilter.options.length > 1) {
+                yearFilter.remove(1);
+            }
+
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === selectedYear) {
+                    option.selected = true;
+                }
+                yearFilter.appendChild(option);
+            });
+        };
+
+        const applyFiltersAndRender = () => {
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const selectedYear = document.getElementById('yearFilter').value;
+
+            let currentlyVisibleEntries = [...allEntries];
+
+            if (selectedYear) {
+                currentlyVisibleEntries = currentlyVisibleEntries.filter(entry => entry.date && entry.date.startsWith(selectedYear));
+            }
+
+            if (selectedMonth) {
+                currentlyVisibleEntries = currentlyVisibleEntries.filter(entry => entry.date && entry.date.substring(5, 7) === selectedMonth);
+            }
+            
+            renderEntries(currentlyVisibleEntries);
+        };
+
+        const updateSelectAllCheckboxState = () => {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const allVisibleCheckboxes = document.querySelectorAll('.entry-checkbox');
+            const allChecked = Array.from(allVisibleCheckboxes).every(cb => cb.checked);
+
+            if (allVisibleCheckboxes.length > 0) {
+                selectAllCheckbox.checked = allChecked;
+            } else {
+                selectAllCheckbox.checked = false;
+            }
+        };
+
+        const updateActionButtonsState = () => {
+            const exportBtn = document.getElementById('exportCsvBtn');
+            const archiveBtn = document.getElementById('archiveBtn');
+            const selectedCheckboxes = document.querySelectorAll('.entry-checkbox:checked');
+            const hasSelection = selectedCheckboxes.length > 0;
+            
+            exportBtn.disabled = !hasSelection;
+            archiveBtn.disabled = !hasSelection;
+        };
+        
+        const escapeCsvCell = (cell) => {
+            if (cell === null || cell === undefined) {
+                return '';
+            }
+            const str = String(cell);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const handleCsvImport = (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const allLines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+                if (allLines.length < 2) {
+                    alert("CSV file is empty or has only a header row.");
+                    return;
+                }
+
+                const headerLine = allLines.shift();
+                const headers = headerLine.split(',').map(h => h.trim());
+                
+                const expectedHeaders = [
+                    'Date', 'Apparatus', 'Odometer', 'Gallons Purchased', 'Fuel Amount', 'Price per Gallon',
+                    'Other Items', 'Reason', 'Other Items Amount', 'Purchaser', 'Receipt URL'
+                ];
+
+                const lowerCaseExpectedHeaders = expectedHeaders.map(h => h.toLowerCase());
+                const lowerCaseHeaders = headers.map(h => h.toLowerCase());
+
+                const missingHeaders = expectedHeaders.filter(expected => !lowerCaseHeaders.includes(expected.toLowerCase()));
+
+                if (missingHeaders.length > 0) {
+                    alert(`CSV is missing the following required headers: ${missingHeaders.join(', ')}`);
+                    return;
+                }
+                
+                const batch = writeBatch(db);
+                const collectionRef = collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+
+                allLines.forEach(line => {
+                    const data = line.split(',');
+                    const entry = {};
+                    
+                    headers.forEach((header, index) => {
+                        const key = header.trim();
+                        const value = data[index] ? data[index].trim() : '';
+
+                        switch(key) {
+                            case 'Date': 
+                                if (value) {
+                                    // Normalize date separators from '/' to '-' to handle both formats
+                                    const normalizedDate = value.replace(/\//g, '-');
+                                    const parts = normalizedDate.split('-');
+                                    
+                                    // Assuming MM-DD-YYYY from CSV, convert to YYYY-MM-DD for storage
+                                    if (parts.length === 3 && parts[2].length === 4) {
+                                        const month = parts[0].padStart(2, '0');
+                                        const day = parts[1].padStart(2, '0');
+                                        const year = parts[2];
+                                        entry.date = `${year}-${month}-${day}`;
+                                    } else {
+                                        entry.date = value; // Fallback for unexpected formats
+                                        console.warn(`Unexpected date format found during CSV import: "${value}". Storing as-is.`);
+                                    }
+                                } else {
+                                    entry.date = '';
+                                }
+                                break;
+                            case 'Apparatus': entry.apparatus = value; break;
+                            case 'Odometer': entry.odometer = value; break;
+                            case 'Gallons Purchased': entry.gallons = parseFloat(value) || 0; break;
+                            case 'Fuel Amount': entry['fuel-amount'] = parseFloat(value) || 0; break;
+                            case 'Price per Gallon': entry['price-per-gallon'] = parseFloat(value) || 0; break;
+                            case 'Other Items': entry['other-items'] = value; break;
+                            case 'Reason': entry['reason-other-items'] = value; break;
+                            case 'Other Items Amount': entry['other-items-amount'] = parseFloat(value) || 0; break;
+                            case 'Purchaser': entry.purchaser = value; break;
+                            case 'Receipt URL': entry.receiptUrl = value; break;
+                        }
+                    });
+
+                    entry.createdAt = Timestamp.now();
+                    entry.isArchived = false;
+                    
+                    const docRef = doc(collectionRef); // Create new doc with auto-generated ID
+                    batch.set(docRef, entry);
+                });
+
+                try {
+                    await batch.commit();
+                    alert(`${allLines.length} entries imported successfully!`);
+                } catch (error) {
+                    console.error("Error importing entries: ", error);
+                    alert("An error occurred during import. Please check the console for details.");
+                } finally {
+                    // Reset file input to allow re-uploading the same file
+                    event.target.value = null;
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        const exportToCsv = () => {
+            const selectedCheckboxes = document.querySelectorAll('.entry-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+
+            if (selectedIds.length === 0) {
+                // This check is redundant due to button state, but good for safety
+                return;
+            }
+
+            const entriesToExport = allEntries.filter(entry => selectedIds.includes(entry.id));
+
+            const headers = [
+                'Date', 'Apparatus', 'Odometer', 'Gallons Purchased', 'Fuel Amount', 'Price per Gallon',
+                'Other Items', 'Reason', 'Other Items Amount', 'Purchaser', 'Receipt URL'
+            ];
+            
+            const rows = entriesToExport.map(entry => {
+                let exportDate = entry.date || '';
+                if (exportDate) {
+                    const parts = exportDate.split('-');
+                    // Stored as YYYY-MM-DD, convert to MM-DD-YYYY for export
+                    if (parts.length === 3) {
+                        exportDate = `${parts[1]}-${parts[2]}-${parts[0]}`;
+                    }
+                }
+
+                return [
+                    exportDate,
+                    entry.apparatus || '',
+                    entry.odometer || '',
+                    entry.gallons || 0,
+                    entry['fuel-amount'] || 0,
+                    entry['price-per-gallon'] || 0,
+                    entry['other-items'] || '',
+                    entry['reason-other-items'] || '',
+                    entry['other-items-amount'] || 0,
+                    entry.purchaser || '',
+                    entry.receiptUrl || ''
+                ].map(escapeCsvCell).join(',');
+            });
+
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                const date = new Date().toISOString().split('T')[0];
+                link.setAttribute('href', url);
+                link.setAttribute('download', `fuel_entries_export_${date}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        const archiveSelectedEntries = async (archiveState) => {
+            const selectedCheckboxes = document.querySelectorAll('.entry-checkbox:checked');
+            if (selectedCheckboxes.length === 0) return;
+
+            const batch = writeBatch(db);
+            const collectionRef = collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+            selectedCheckboxes.forEach(cb => {
+                const docId = cb.dataset.id;
+                const docRef = doc(collectionRef, docId);
+                batch.update(docRef, { isArchived: archiveState });
+            });
+
+            try {
+                await batch.commit();
+                console.log(`${selectedCheckboxes.length} entries' archive state set to ${archiveState}.`);
+            } catch (error) {
+                console.error("Error updating entries: ", error);
+            }
         };
         
         const formatCurrency = (value) => {
@@ -102,7 +385,8 @@
              let receiptHtml = '';
              if (entry.receiptUrl) {
                 try {
-                    const response = await fetch(entry.receiptUrl);
+                    const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(entry.receiptUrl)}`;
+                    const response = await fetch(proxiedUrl);
                     const blob = await response.blob();
                     const dataUrl = await new Promise(resolve => {
                         const reader = new FileReader();
@@ -112,7 +396,7 @@
                      receiptHtml = `
                         <div class="section">
                             <h3>Receipt Image</h3>
-                            <img src="${dataUrl}" style="max-width: 100%; border: 1px solid #ccc; border-radius: 4px;" alt="Receipt Image">
+                            <img src="${dataUrl}" style="max-width: 100%; max-height: 350px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px;" alt="Receipt Image">
                         </div>
                      `;
                 } catch (error) {
@@ -167,16 +451,17 @@
         const renderEntries = (entries) => {
             const listElement = document.getElementById('fuelEntriesList');
             if (entries.length === 0) {
-                listElement.innerHTML = `<p class="text-gray-500">No fuel entries saved yet.</p>`;
+                const message = isViewingArchived ? "No archived entries found." : "No active fuel entries saved yet.";
+                listElement.innerHTML = `<p class="text-gray-500">${message}</p>`;
                 return;
             }
 
             listElement.innerHTML = '';
-            entries.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+            entries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             entries.forEach(entry => {
                 const itemContainer = document.createElement('div');
-                itemContainer.className = 'border rounded-md bg-gray-50 p-4';
+                itemContainer.className = 'border rounded-md bg-white overflow-hidden';
                 
                 let displayDate = 'No Date';
                 if (entry.date) {
@@ -188,10 +473,11 @@
                 let otherItemsInfo = '';
                 if(entry['other-items'] || entry['other-items-amount']){
                     otherItemsInfo = `
-                        <div class="mt-2 pt-2 border-t">
-                             <p class="text-sm"><span class="font-medium">Other Items:</span> ${entry['other-items'] || 'N/A'}</p>
+                        <div class="mt-4 pt-4 border-t">
+                             <h4 class="text-sm font-semibold mb-2">Other Items Purchased</h4>
+                             <p class="text-sm"><span class="font-medium">Items:</span> ${entry['other-items'] || 'N/A'}</p>
                              <p class="text-sm"><span class="font-medium">Reason:</span> ${entry['reason-other-items'] || 'N/A'}</p>
-                             <p class="text-sm"><span class="font-medium">Other Items Amount:</span> ${formatCurrency(entry['other-items-amount'])}</p>
+                             <p class="text-sm"><span class="font-medium">Amount:</span> ${formatCurrency(entry['other-items-amount'])}</p>
                         </div>
                     `;
                 }
@@ -199,38 +485,54 @@
                 let receiptInfo = '';
                 if (entry.receiptUrl) {
                     receiptInfo = `
-                        <div class="mt-2 pt-2 border-t">
-                            <p class="text-sm font-medium">Receipt:</p>
+                        <div class="mt-4 pt-4 border-t">
+                            <p class="text-sm font-semibold">Receipt:</p>
                             <a href="${entry.receiptUrl}" target="_blank" rel="noopener noreferrer">
-                                <img src="${entry.receiptUrl}" alt="Receipt" class="mt-1 rounded-md max-h-32 cursor-pointer hover:opacity-80 transition"/>
+                                <img src="${entry.receiptUrl}" alt="Receipt" class="mt-2 rounded-md max-h-48 cursor-pointer hover:opacity-80 transition"/>
                             </a>
                         </div>
                     `;
                 }
 
                 itemContainer.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-semibold text-gray-800"><span class="text-blue-600">${displayDate}</span></p>
-                            <p class="text-md text-gray-700"><span class="font-medium">Apparatus:</span> ${entry.apparatus || 'N/A'}</p>
-                            <p class="text-sm text-gray-600"><span class="font-medium">Purchased By:</span> ${entry.purchaser || 'N/A'}</p>
+                    <div class="entry-summary bg-gray-50 hover:bg-gray-100 p-4 flex justify-between items-center transition">
+                        <div class="flex items-center space-x-4">
+                             <input type="checkbox" data-id="${entry.id}" class="entry-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                             <div>
+                                 <p class="font-semibold text-gray-800"><span class="text-blue-600">${displayDate}</span></p>
+                                 <p class="text-md text-gray-700"><span class="font-medium">Apparatus:</span> ${entry.apparatus || 'N/A'}</p>
+                             </div>
                         </div>
-                        <div class="text-right">
-                             <p class="text-lg font-bold text-green-600">${formatCurrency(entry['fuel-amount'])}</p>
-                             <p class="text-sm text-gray-500">${entry.gallons || 'N/A'} gal @ ${formatCurrency(entry['price-per-gallon'])}/gal</p>
-                             <p class="text-sm text-gray-500">Odometer: ${entry.odometer || 'N/A'}</p>
+                        <div class="flex items-center">
+                            <div class="text-right mr-4">
+                                 <p class="text-lg font-bold text-green-600">${formatCurrency(entry['fuel-amount'])}</p>
+                            </div>
+                            <div class="expand-details-btn cursor-pointer p-2">
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                    ${otherItemsInfo}
-                    ${receiptInfo}
-                    <div class="text-right mt-3">
-                        <button data-id="${entry.id}" class="download-pdf-btn bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md text-sm shadow transition disabled:opacity-50">
-                            Download PDF
-                        </button>
+                    <div class="details-container hidden p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <p class="text-sm"><span class="font-medium">Purchased By:</span> ${entry.purchaser || 'N/A'}</p>
+                             <p class="text-sm"><span class="font-medium">Odometer:</span> ${entry.odometer || 'N/A'}</p>
+                             <p class="text-sm"><span class="font-medium">Gallons Purchased:</span> ${entry.gallons || 'N/A'}</p>
+                             <p class="text-sm"><span class="font-medium">Price per Gallon:</span> ${formatCurrency(entry['price-per-gallon'])}</p>
+                        </div>
+                        ${otherItemsInfo}
+                        ${receiptInfo}
+                        <div class="text-right mt-4 pt-4 border-t">
+                            <button data-id="${entry.id}" class="download-pdf-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-md text-sm shadow transition disabled:opacity-50">
+                                Download PDF
+                            </button>
+                        </div>
                     </div>
                 `;
                 listElement.appendChild(itemContainer);
             });
+            updateSelectAllCheckboxState();
         };
 
         document.getElementById('fuelEntriesList').addEventListener('click', async (event) => {
@@ -243,31 +545,105 @@
                     const originalText = button.textContent;
                     button.textContent = 'Generating...';
                     button.disabled = true;
-
                     try {
                         await generatePdfForEntry(entry);
                     } catch (error) {
                         console.error("PDF Generation failed:", error);
-                        alert("Failed to generate PDF. Please try again.");
                     } finally {
                         button.textContent = originalText;
                         button.disabled = false;
                     }
                 }
+                return;
+            }
+            
+            if (event.target.classList.contains('entry-checkbox')) {
+                updateActionButtonsState();
+                updateSelectAllCheckboxState();
+                return;
+            }
+
+            const expandButton = event.target.closest('.expand-details-btn');
+            if (expandButton) {
+                const summary = expandButton.closest('.entry-summary');
+                const details = summary.nextElementSibling;
+                const icon = summary.querySelector('svg');
+                if (details) {
+                    details.classList.toggle('hidden');
+                    icon.classList.toggle('rotate-180');
+                }
             }
         });
+        
+        document.getElementById('monthFilter').addEventListener('change', applyFiltersAndRender);
+        document.getElementById('yearFilter').addEventListener('change', applyFiltersAndRender);
+        document.getElementById('clearFilterBtn').addEventListener('click', () => {
+            document.getElementById('monthFilter').value = '';
+            document.getElementById('yearFilter').value = '';
+            applyFiltersAndRender();
+        });
+        document.getElementById('selectAllCheckbox').addEventListener('change', (event) => {
+            const isChecked = event.target.checked;
+            document.querySelectorAll('.entry-checkbox').forEach(cb => cb.checked = isChecked);
+            updateActionButtonsState();
+        });
+        document.getElementById('exportCsvBtn').addEventListener('click', exportToCsv);
+        document.getElementById('importCsvBtn').addEventListener('click', () => document.getElementById('csvFileInput').click());
+        document.getElementById('csvFileInput').addEventListener('change', handleCsvImport);
+        document.getElementById('archiveBtn').addEventListener('click', () => archiveSelectedEntries(!isViewingArchived));
+        document.getElementById('viewToggle').addEventListener('click', (e) => {
+            e.preventDefault();
+            isViewingArchived = !isViewingArchived;
+            updateView();
+        });
 
-        const main = () => {
-            const collectionRef = getFuelCollection();
-            if (collectionRef) {
-                onSnapshot(query(collectionRef), (snapshot) => {
-                    allEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderEntries(allEntries);
-                });
+        function setupSnapshotListener() {
+            if (unsubscribe) unsubscribe();
+
+            const collectionRef = collection(db, `artifacts/${appId}/public/data/fuel_entries`);
+
+            unsubscribe = onSnapshot(collectionRef, (snapshot) => {
+                const allDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                populateYearFilter(allDocs);
+
+                // Client-side filtering to correctly handle entries without the isArchived field
+                if (isViewingArchived) {
+                    allEntries = allDocs.filter(doc => doc.isArchived === true);
+                } else {
+                    allEntries = allDocs.filter(doc => doc.isArchived !== true);
+                }
+                
+                applyFiltersAndRender();
+                updateActionButtonsState();
+            }, (error) => {
+                console.error("Error fetching entries:", error);
+                document.getElementById('fuelEntriesList').innerHTML = `<p class="text-red-500">Error: Could not load entries.</p>`;
+            });
+        }
+
+        const updateView = () => {
+            const viewToggle = document.getElementById('viewToggle');
+            const archiveBtn = document.getElementById('archiveBtn');
+            const title = document.getElementById('entriesListTitle');
+
+            if (isViewingArchived) {
+                title.textContent = 'Archived Fuel Entries';
+                viewToggle.textContent = 'View Active Entries';
+                archiveBtn.textContent = 'Un-archive Selected';
+            } else {
+                title.textContent = 'All Fuel Entries';
+                viewToggle.textContent = 'View Archived Entries';
+                archiveBtn.textContent = 'Archive Selected';
             }
+            setupSnapshotListener();
         };
-        main();
+
+        // Initial load
+        updateView();
+
     </script>
 </body>
 </html>
+
 

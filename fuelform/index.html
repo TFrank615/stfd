@@ -33,15 +33,38 @@
 
             <div>
                 <label for="apparatus" class="block text-sm font-medium text-gray-700">Apparatus Fuel Purchased for:</label>
-                <input type="text" id="apparatus" name="apparatus" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder='(If Fuel cans write: "Fuel can L58")'>
+                <select id="apparatus" name="apparatus" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Apparatus</option>
+                    
+                    <option value="Medic 114">Medic 114</option>
+                    <option value="Medic 124">Medic 124</option>
+                    <option value="Medic 107">Medic 107</option>
+                    <option value="Medic 122">Medic 122</option>
+                    <option value="Medic 101">Medic 101</option>
+                    <option value="Ladder 58">Ladder 58</option>
+                    <option value="Engine 58">Engine 58</option>
+                    <option value="Brush 58">Brush 58</option>
+                    <option value="ATV 58">ATV 58</option>
+                    <option value="Utility 58">Utility 58</option>
+                    <option value="Engine 72">Engine 72</option>
+                    <option value="Rescue 72">Rescue 72</option>
+                    <option value="Tanker 72">Tanker 72</option>
+                    <option value="Brush 72">Brush 72</option>
+                    <option value="Engine 56">Engine 56</option>
+                    <option value="Tanker 56">Tanker 56</option>
+                    <option value="72 Fuel Cans">72 Fuel Cans</option>
+                    <option value="58 Fuel Cans">58 Fuel Cans</option>
+                    <option value="56 Fuel Cans">56 Fuel Cans</option>
+                    <option value="Other Items">Other Items</option>
+                </select>
             </div>
 
-            <div>
+            <div id="odometer-container">
                 <label for="odometer" class="block text-sm font-medium text-gray-700">Odometer reading:</label>
                 <input type="number" id="odometer" name="odometer" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="fuel-grid-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="gallons" class="block text-sm font-medium text-gray-700">Gallons Purchased:</label>
                     <input type="number" step="0.01" id="gallons" name="gallons" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
@@ -102,14 +125,8 @@
             <button id="saveFuelEntryButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 Save Entry
             </button>
-            <a href="view_fuel_entries.html" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                View Fuel Entries
-            </a>
         </div>
         
-        <footer class="text-center mt-6">
-            <p class="text-xs text-gray-600">Fill out sheet, attach Fuel/Other Item receipts and drop in report box.</p>
-        </footer>
     </div>
 
     <script type="module">
@@ -117,15 +134,20 @@
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // --- PASTE YOUR GOOGLE WEB APP URL HERE ---
-        const googleWebAppUrl = 'https://script.google.com/macros/s/AKfycbww78v7Kr-LhOFlqu0tWAUz90wHirEm6bVu2FrFtFU1lgAqnmqOW7Q_ZFyhsEOTvNa7/exec';
+        // --- Set current date on page load ---
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const dd = String(today.getDate()).padStart(2, '0');
+        const formattedDate = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('date').value = formattedDate;
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyA-4zB5WLhdpb6yhKEy6SZ2I5FS-ipgIBY",
             authDomain: "stfd-fuel-form.firebaseapp.com",
             projectId: "stfd-fuel-form",
-            storageBucket: "stfd-fuel-form.appspot.com", // Corrected storage bucket
+            storageBucket: "stfd-fuel-form.firebasestorage.app",
             messagingSenderId: "420570035631",
             appId: "1:420570035631:web:5da57666c0d49d02d7eb5a",
             measurementId: "G-VMRETXFSZB"
@@ -141,6 +163,22 @@
             console.error("Firebase initialization error:", e);
             alert("Error: Could not connect to the database.");
         }
+        
+        // --- Form Logic ---
+        const apparatusSelect = document.getElementById('apparatus');
+        const odometerContainer = document.getElementById('odometer-container');
+        const fuelGridContainer = document.getElementById('fuel-grid-container');
+
+        apparatusSelect.addEventListener('change', (event) => {
+            const isOtherItems = event.target.value === 'Other Items';
+            if (isOtherItems) {
+                odometerContainer.classList.add('hidden');
+                fuelGridContainer.classList.add('hidden');
+            } else {
+                odometerContainer.classList.remove('hidden');
+                fuelGridContainer.classList.remove('hidden');
+            }
+        });
 
         const receiptInput = document.getElementById('receipt');
         const receiptPreview = document.getElementById('receipt-preview');
@@ -163,53 +201,42 @@
 
         const getFormData = () => {
             const formData = {};
-            document.querySelectorAll('#fuel-form-container input[type="text"], #fuel-form-container input[type="number"], #fuel-form-container input[type="date"]').forEach(input => {
+            document.querySelectorAll('#fuel-form-container input[type="text"], #fuel-form-container input[type="number"], #fuel-form-container input[type="date"], #fuel-form-container select').forEach(input => {
                 if (input.id) {
                     formData[input.id] = input.value;
                 }
             });
+            formData.createdAt = serverTimestamp();
             return formData;
         };
-
-        async function sendToGoogleSheet(data) {
-            if (!googleWebAppUrl || googleWebAppUrl === 'YOUR_WEB_APP_URL_HERE') {
-                console.warn('Google Web App URL is not set. Skipping sheet submission.');
-                return; // Don't try to send if the URL isn't set
-            }
-            try {
-                const response = await fetch(googleWebAppUrl, {
-                    method: 'POST',
-                    mode: 'no-cors', // Important for sending to Google Apps Script from a browser
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
-                console.log('Successfully sent data to Google Sheet proxy.');
-            } catch (error) {
-                console.error('Error sending data to Google Sheet:', error);
-                // Optionally alert the user that the sheet submission failed
-                // alert('Could not save the entry to Google Sheets. It has been saved to the internal database.');
-            }
-        }
 
         document.getElementById('saveFuelEntryButton').addEventListener('click', async () => {
             const saveButton = document.getElementById('saveFuelEntryButton');
             const collectionRef = getFuelCollection();
+            if (!collectionRef) {
+                alert("Cannot save: Database connection not available.");
+                return;
+            }
             
             const data = getFormData();
+            // Base validation
             if (!data.date || !data.apparatus || !data.purchaser) {
                 alert("Please fill out Date, Apparatus, and Purchaser fields.");
                 return;
             }
 
+            // Conditional validation for fuel fields
+            if (data.apparatus !== 'Other Items') {
+                if (!data.odometer || !data.gallons || !data['price-per-gallon'] || !data['fuel-amount']) {
+                     alert("Please fill out all fuel-related fields: Odometer, Gallons, Price per Gallon, and Fuel Amount.");
+                     return;
+                }
+            }
+
             saveButton.disabled = true;
-            saveButton.textContent = 'Saving...';
             const receiptFile = document.getElementById('receipt').files[0];
 
             try {
-                // 1. Upload receipt if it exists
                 if (receiptFile) {
                     saveButton.textContent = 'Uploading Receipt...';
                     const storage = getStorage(app);
@@ -219,25 +246,13 @@
                     data.receiptUrl = downloadURL;
                 }
 
-                // 2. Save to Firebase
-                if (collectionRef) {
-                    saveButton.textContent = 'Saving to Database...';
-                    const dataForFirebase = { ...data, createdAt: serverTimestamp() };
-                    await addDoc(collectionRef, dataForFirebase);
-                } else {
-                     alert("Cannot save to database: Connection not available.");
-                }
-
-                // 3. Send to Google Sheet
-                saveButton.textContent = 'Saving to Sheet...';
-                await sendToGoogleSheet(data);
-
+                saveButton.textContent = 'Saving Entry...';
+                await addDoc(collectionRef, data);
                 alert('Fuel entry saved successfully!');
                 window.location.reload();
-
             } catch (error) {
-                console.error("Error during save process: ", error);
-                alert("An error occurred. Please check the console for details.");
+                console.error("Error writing document: ", error);
+                alert("Error saving entry. Please check the console.");
             } finally {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save Entry';
@@ -246,6 +261,5 @@
     </script>
 </body>
 </html>
-
 
 
