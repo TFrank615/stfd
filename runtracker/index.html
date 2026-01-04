@@ -7,7 +7,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/6cwN2fbb/icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="SPFLD TWP">
+    <meta name="apple-mobile-web-app-title" content="SPRINGFIELD">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -167,16 +167,28 @@
                         </div>
                     </div>
 
-                    <!-- Address -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
-                        <!-- Custom Relative Container for Dropdown -->
-                        <div class="relative">
-                            <input type="text" id="address" oninput="forceCaps(this)" required placeholder="1234 MAIN ST..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase" autocomplete="off">
-                            
-                            <!-- Custom Suggestion Dropdown (Hidden by default) -->
-                            <div id="addressSuggestions" class="absolute w-full bg-gray-800 border border-gray-600 rounded-lg shadow-2xl z-50 hidden mt-1 max-h-48 overflow-y-auto">
-                                <!-- Items injected via JS -->
+                    <!-- District & Address Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
+                            <select id="district" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase font-bold">
+                                <option value="">SELECT</option>
+                                <option value="58">58</option>
+                                <option value="72">72</option>
+                                <option value="56">56</option>
+                                <option value="MA">MA</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
+                            <!-- Custom Relative Container for Dropdown -->
+                            <div class="relative">
+                                <input type="text" id="address" oninput="forceCaps(this)" required placeholder="1234 MAIN ST..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase" autocomplete="off">
+                                
+                                <!-- Custom Suggestion Dropdown (Hidden by default) -->
+                                <div id="addressSuggestions" class="absolute w-full bg-gray-800 border border-gray-600 rounded-lg shadow-2xl z-50 hidden mt-1 max-h-48 overflow-y-auto">
+                                    <!-- Items injected via JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -315,6 +327,18 @@
                             </select>
                         </div>
 
+                        <!-- District (NEW FILTER) -->
+                        <div>
+                            <label class="block text-xs text-gray-500 uppercase font-bold mb-1">District</label>
+                            <select id="filterDistrict" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
+                                <option value="">ANY</option>
+                                <option value="58">58</option>
+                                <option value="72">72</option>
+                                <option value="56">56</option>
+                                <option value="MA">MA</option>
+                            </select>
+                        </div>
+
                         <!-- Mutual Aid -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Mutual Aid</label>
@@ -328,7 +352,7 @@
                         </div>
 
                         <!-- Units -->
-                        <div>
+                        <div class="lg:col-span-2">
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Units</label>
                             <input type="text" id="filterUnits" oninput="forceCaps(this); renderTable()" placeholder="CONTAINS..." class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
                         </div>
@@ -359,6 +383,9 @@
                                 </th>
                                 <th id="th-nature" onclick="handleSort('nature')" class="p-4 font-medium tracking-wider sortable">
                                     Nature <i class="fa-solid fa-sort sort-icon"></i>
+                                </th>
+                                <th id="th-district" onclick="handleSort('district')" class="p-4 font-medium tracking-wider sortable">
+                                    Dist <i class="fa-solid fa-sort sort-icon"></i>
                                 </th>
                                 <th id="th-address" onclick="handleSort('address')" class="p-4 font-medium tracking-wider sortable">
                                     Address <i class="fa-solid fa-sort sort-icon"></i>
@@ -463,64 +490,43 @@
                         <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
                             <span class="block text-gray-400 text-xs uppercase font-bold mb-1">Given (To)</span>
                             <span id="stat-ma-given" class="text-3xl font-bold text-yellow-400 block mb-2">0</span>
-                            <div class="flex justify-center gap-3 text-xs border-t border-gray-700 pt-2">
-                                <div>
-                                    <span class="text-gray-500 block text-[10px]">DAY</span>
-                                    <span id="stat-ma-given-day" class="font-bold text-lg text-blue-400">0</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-500 block text-[10px]">VOL</span>
-                                    <span id="stat-ma-given-vol" class="font-bold text-lg text-orange-400">0</span>
-                                </div>
-                            </div>
                         </div>
                         
                         <!-- Received Box -->
                         <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
                             <span class="block text-gray-400 text-xs uppercase font-bold mb-1">Received (From)</span>
                             <span id="stat-ma-received" class="text-3xl font-bold text-green-400 block mb-2">0</span>
-                            <div class="flex justify-center gap-3 text-xs border-t border-gray-700 pt-2">
-                                <div>
-                                    <span class="text-gray-500 block text-[10px]">DAY</span>
-                                    <span id="stat-ma-received-day" class="font-bold text-lg text-blue-400">0</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-500 block text-[10px]">VOL</span>
-                                    <span id="stat-ma-received-vol" class="font-bold text-lg text-orange-400">0</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                    <h4 class="text-xs text-gray-400 uppercase font-bold mb-2">Most Frequent Depts</h4>
-                    <ul id="stats-ma-depts" class="text-sm space-y-1 text-gray-300">
-                        <!-- Populated by JS -->
-                    </ul>
-                </div>
-
-                <!-- Crew Breakdown Stats -->
-                <div id="widget-crew" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
-                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Crew Analysis</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
-                            <span class="block text-gray-400 text-xs uppercase font-bold">Day Crew</span>
-                            <span id="stat-crew-day" class="text-2xl font-bold text-blue-400">0</span>
+                    
+                    <!-- Split Lists for Mutual Aid -->
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
+                        <div>
+                            <h4 class="text-xs text-yellow-500 uppercase font-bold mb-2 flex items-center gap-1"><i class="fa-solid fa-arrow-right"></i> Given To</h4>
+                            <ul id="stats-ma-given-list" class="text-sm space-y-1 text-gray-300">
+                                <!-- Populated by JS -->
+                            </ul>
                         </div>
-                        <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
-                            <span class="block text-gray-400 text-xs uppercase font-bold">Volunteer</span>
-                            <span id="stat-crew-vol" class="text-2xl font-bold text-orange-400">0</span>
+                        <div>
+                            <h4 class="text-xs text-green-500 uppercase font-bold mb-2 flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> Rec'd From</h4>
+                            <ul id="stats-ma-received-list" class="text-sm space-y-1 text-gray-300">
+                                <!-- Populated by JS -->
+                            </ul>
                         </div>
-                    </div>
-                    <div class="bg-gray-900/30 p-3 rounded border border-gray-700 text-xs text-gray-400">
-                        <p class="font-bold mb-1">SCHEDULE (EMS/BOTH ONLY):</p>
-                        <p id="stats-sched-text-wd">M-F: ...</p>
-                        <p id="stats-sched-text-we">S-S: ...</p>
-                        <p>All other times: Volunteer</p>
                     </div>
                 </div>
 
-                <!-- Volunteer Disposition Stats -->
+                <!-- NEW: District Analysis Widget (Replaces Crew Stats) -->
+                <div id="widget-districts" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
+                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">District Analysis</h3>
+                    <div id="stats-districts" class="space-y-3">
+                        <div class="text-gray-500 text-sm italic">No data available</div>
+                    </div>
+                </div>
+
+                <!-- EMS Disposition Stats (Renamed) -->
                 <div id="widget-voldispo" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
-                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Volunteer Dispositions</h3>
+                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Disposition Analysis</h3>
                     <div id="stats-vol-dispo" class="space-y-3">
                         <div class="text-gray-500 text-sm italic">No data available</div>
                     </div>
@@ -600,10 +606,22 @@
                     </div>
                 </div>
 
-                <!-- Address -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
-                    <input type="text" id="edit_address" list="addressHistory" oninput="forceCaps(this)" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" autocomplete="off">
+                <!-- District & Address -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
+                        <select id="edit_district" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase font-bold">
+                            <option value="">SELECT</option>
+                            <option value="58">58</option>
+                            <option value="72">72</option>
+                            <option value="56">56</option>
+                            <option value="MA">MA</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
+                        <input type="text" id="edit_address" list="addressHistory" oninput="forceCaps(this)" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" autocomplete="off">
+                    </div>
                 </div>
 
                 <!-- Units -->
@@ -697,12 +715,11 @@
         let sortState = { col: 'datetime', asc: false }; // Default: Newest first
         
         let currentConfig = {
-            schedules: {},
             statsConfig: {
                 showNatures: true,
                 showAddresses: true,
                 showMutual: true,
-                showCrew: true,
+                showCrew: false, // Default off now
                 showVolDispo: true,
                 limit: 5
             }
@@ -758,6 +775,7 @@
             document.getElementById('filterType').value = '';
             document.getElementById('filterNature').value = '';
             document.getElementById('filterDisposition').value = '';
+            document.getElementById('filterDistrict').value = '';
             document.getElementById('filterMutual').value = '';
             document.getElementById('filterUnits').value = '';
             document.getElementById('searchInput').value = '';
@@ -815,6 +833,7 @@
             document.getElementById('edit_units').value = call.units || '';
             document.getElementById('edit_notes').value = call.notes || '';
             document.getElementById('edit_emsDisposition').value = call.emsDisposition || '';
+            document.getElementById('edit_district').value = call.district || '';
             
             selectEditType(call.responseType || 'EMS');
 
@@ -877,6 +896,7 @@
                     responseType: responseType,
                     emsDisposition: emsDisp,
                     address: document.getElementById('edit_address').value.toUpperCase(),
+                    district: document.getElementById('edit_district').value,
                     units: document.getElementById('edit_units').value.toUpperCase(),
                     mutualAid: isMutualAid,
                     mutualAidType: isMutualAid ? document.getElementById('edit_mutualAidType').value : null,
@@ -1018,13 +1038,6 @@
                         populateChips('edit_deptChips', data.depts, addDeptToEditInput);
                     }
 
-                    if (data.schedules) {
-                        currentConfig.schedules = { ...currentConfig.schedules, ...data.schedules };
-                    } 
-                    else if (data.schedule) {
-                        currentConfig.schedules["2025"] = data.schedule;
-                    }
-
                     if (data.stats) {
                         currentConfig.statsConfig = { ...currentConfig.statsConfig, ...data.stats };
                     }
@@ -1117,7 +1130,7 @@
                 showToast("NO DATA TO EXPORT", true);
                 return;
             }
-            const headers = ['Incident #', 'Date/Time', 'Nature', 'Address', 'Type', 'Units', 'Mutual Aid', 'Disposition', 'Notes'];
+            const headers = ['Incident #', 'Date/Time', 'Nature', 'District', 'Address', 'Type', 'Units', 'Mutual Aid', 'Disposition', 'Notes'];
             const rows = allCalls.map(c => {
                 let reported = '';
                 if (c.dispatchDate && c.dispatchTime) {
@@ -1144,6 +1157,7 @@
                     c.incidentNumber,
                     reported,
                     escapeCsv(c.callNature),
+                    escapeCsv(c.district || ''),
                     escapeCsv(c.address),
                     c.responseType === 'Fire' ? 'FIRE' : (c.responseType === 'EMS' ? 'EMS' : 'BOTH'),
                     escapeCsv(c.units),
@@ -1201,6 +1215,11 @@
                         return;
                     }
 
+                    // Check header to detect version
+                    const header = rows[0].map(h => h.trim().toUpperCase());
+                    const hasDistrict = header.includes('DISTRICT');
+                    const distIndex = hasDistrict ? header.indexOf('DISTRICT') : -1;
+
                     const existingIncidents = new Map();
                     allCalls.forEach(call => {
                         if (call.incidentNumber) existingIncidents.set(call.incidentNumber, call.id);
@@ -1214,17 +1233,46 @@
                         if (row.length < 2) continue; 
 
                         try {
-                            const incNum = row[0]?.trim().toUpperCase();
+                            // Column mapping with fallback
+                            // Default (Old): 0=Inc, 1=Date, 2=Nature, 3=Address, 4=Type, 5=Units, 6=MA, 7=Disp, 8=Notes
+                            // New: District inserted based on header detection or fallback logic
+                            
+                            const getVal = (idx) => (row[idx] ? row[idx].trim().toUpperCase() : '');
+                            
+                            const incNum = getVal(0);
                             if (!incNum) continue;
 
                             const reported = row[1]?.trim(); 
-                            const nature = row[2]?.trim().toUpperCase();
-                            const address = row[3]?.trim().toUpperCase();
-                            const typeRaw = row[4]?.trim().toUpperCase(); 
-                            const units = row[5]?.trim().toUpperCase();
-                            const mutualAidCombined = row[6]?.trim(); 
-                            const disposition = row[7]?.trim().toUpperCase();
-                            const notes = row[8]?.trim().toUpperCase();
+                            const nature = getVal(2);
+                            
+                            let district = '';
+                            let address = '';
+                            let typeRaw = '';
+                            let units = '';
+                            let mutualAidCombined = '';
+                            let disposition = '';
+                            let notes = '';
+
+                            if (hasDistrict && distIndex > -1) {
+                                district = getVal(distIndex);
+                                // Map others by name if possible, otherwise use fixed relative indices
+                                // Assuming standard export structure:
+                                // Inc, Date, Nature, District, Address, Type, Units, MA, Disp, Notes
+                                address = getVal(4);
+                                typeRaw = getVal(5);
+                                units = getVal(6);
+                                mutualAidCombined = row[7]?.trim();
+                                disposition = getVal(8);
+                                notes = getVal(9);
+                            } else {
+                                // Old format
+                                address = getVal(3);
+                                typeRaw = getVal(4);
+                                units = getVal(5);
+                                mutualAidCombined = row[6]?.trim();
+                                disposition = getVal(7);
+                                notes = getVal(8);
+                            }
 
                             let formattedDate = '';
                             let formattedTime = '';
@@ -1240,7 +1288,7 @@
 
                             const yearShort = incNum.substring(0, 2); 
                             const yearFull = 2000 + parseInt(yearShort);
-                            const seqStr = incNum.replace(yearShort + 'HT', '').replace(yearShort + 'PL', '');
+                            const seqStr = incNum.replace(yearShort + 'HT', '').replace(yearShort + 'ST', '').replace(yearShort + 'PL', '');
                             const seqNum = parseInt(seqStr);
 
                             let finalType = 'Both';
@@ -1276,12 +1324,13 @@
                                 callNature: nature,
                                 responseType: finalType,
                                 address: address,
-                                units: units || '',
+                                district: district,
+                                units: units,
                                 mutualAid: isMa,
                                 mutualAidType: maType,
                                 mutualAidDept: maDept,
-                                emsDisposition: disposition || '',
-                                notes: notes || '',
+                                emsDisposition: disposition,
+                                notes: notes,
                                 imported: true
                             };
 
@@ -1540,6 +1589,7 @@
                     responseType: responseType,
                     emsDisposition: emsDisp,
                     address: document.getElementById('address').value.toUpperCase(),
+                    district: document.getElementById('district').value,
                     units: document.getElementById('units').value.toUpperCase(),
                     mutualAid: isMutualAid,
                     mutualAidType: isMutualAid ? document.getElementById('mutualAidType').value : null,
@@ -1582,6 +1632,7 @@
             const filterType = document.getElementById('filterType').value;
             const filterNature = document.getElementById('filterNature').value.toUpperCase();
             const filterDisp = document.getElementById('filterDisposition').value;
+            const filterDistrict = document.getElementById('filterDistrict').value;
             const filterMutual = document.getElementById('filterMutual').value;
             const filterUnits = document.getElementById('filterUnits').value.toUpperCase();
 
@@ -1604,6 +1655,9 @@
 
                 // Disposition
                 if (filterDisp && call.emsDisposition !== filterDisp) return false;
+
+                // District
+                if (filterDistrict && call.district !== filterDistrict) return false;
 
                 // Units
                 if (filterUnits && (!call.units || !call.units.includes(filterUnits))) return false;
@@ -1705,6 +1759,7 @@
                         <div class="text-xs text-gray-500 font-mono tracking-wide">${call.dispatchTime}</div>
                     </td>
                     <td class="p-4 font-medium">${call.callNature}</td>
+                    <td class="p-4 text-center font-bold text-gray-400">${call.district || '-'}</td>
                     <td class="p-4 text-gray-400 truncate max-w-[150px]" title="${call.address}">${call.address}</td>
                     <td class="p-4">${typeBadge}</td>
                     <td class="p-4 text-gray-400 text-xs truncate max-w-[100px]" title="${call.units}">${call.units}</td>
@@ -1726,31 +1781,8 @@
             document.getElementById('stat-fire').textContent = fireCount;
             document.getElementById('stat-ems').textContent = emsCount;
 
-            const config = currentConfig.statsConfig || { showNatures: true, showAddresses: true, showMutual: true, showCrew: true, showVolDispo: true, limit: 5 };
+            const config = currentConfig.statsConfig || { showNatures: true, showAddresses: true, showMutual: true, showCrew: false, showVolDispo: true, limit: 5 };
             const limit = config.limit || 5;
-
-            let sched = { wdStart: 6, wdEnd: 18, weStart: 8, weEnd: 18 };
-            if (currentConfig.schedules && currentConfig.schedules[String(currentStatsYear)]) {
-                sched = currentConfig.schedules[String(currentStatsYear)];
-            }
-            const { wdStart, wdEnd, weStart, weEnd } = sched;
-
-            const checkDayCrew = (c) => {
-                if (!c.dispatchDate || !c.dispatchTime) return false;
-                try {
-                    const [y, m, d] = c.dispatchDate.split('-').map(Number);
-                    const [h, min] = c.dispatchTime.split(':').map(Number);
-                    const dateObj = new Date(y, m - 1, d, h, min);
-                    const day = dateObj.getDay(); 
-                    const hour = h;
-
-                    if (day >= 1 && day <= 5) {
-                        return (hour >= wdStart && hour < wdEnd);
-                    } else {
-                        return (hour >= weStart && hour < weEnd);
-                    }
-                } catch(e) { return false; }
-            };
 
             const wNatures = document.getElementById('widget-natures');
             if (!config.showNatures) {
@@ -1832,26 +1864,27 @@
                 wMutual.classList.remove('hidden');
                 let givenCount = 0;
                 let receivedCount = 0;
-                let givenDay = 0, givenVol = 0;
-                let receivedDay = 0, receivedVol = 0;
-                const maDepts = {};
+                const maGivenDepts = {};
+                const maReceivedDepts = {};
 
                 thisYearCalls.forEach(c => {
                     if (c.responseType === 'Fire') return;
                     if (c.mutualAid) {
-                        const isDay = checkDayCrew(c);
                         if (c.mutualAidType === 'Given') {
                             givenCount++;
-                            if (isDay) givenDay++; else givenVol++;
                         }
                         if (c.mutualAidType === 'Received') {
                             receivedCount++;
-                            if (isDay) receivedDay++; else receivedVol++;
                         }
                         if (c.mutualAidDept) {
                             const depts = c.mutualAidDept.split(',').map(s => s.trim());
                             depts.forEach(d => {
-                                if(d) maDepts[d] = (maDepts[d] || 0) + 1;
+                                if(!d) return;
+                                if (c.mutualAidType === 'Given') {
+                                    maGivenDepts[d] = (maGivenDepts[d] || 0) + 1;
+                                } else {
+                                    maReceivedDepts[d] = (maReceivedDepts[d] || 0) + 1;
+                                }
                             });
                         }
                     }
@@ -1859,53 +1892,90 @@
 
                 document.getElementById('stat-ma-given').textContent = givenCount;
                 document.getElementById('stat-ma-received').textContent = receivedCount;
-                document.getElementById('stat-ma-given-day').textContent = givenDay;
-                document.getElementById('stat-ma-given-vol').textContent = givenVol;
-                document.getElementById('stat-ma-received-day').textContent = receivedDay;
-                document.getElementById('stat-ma-received-vol').textContent = receivedVol;
 
-                const sortedDepts = Object.entries(maDepts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, limit); 
+                // Render Given List
+                const sortedGiven = Object.entries(maGivenDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
+                const givenListEl = document.getElementById('stats-ma-given-list');
+                givenListEl.innerHTML = '';
+                
+                if (sortedGiven.length === 0) {
+                    givenListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
+                } else {
+                    sortedGiven.forEach(([name, count]) => {
+                        const li = document.createElement('li');
+                        li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
+                        li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
+                        givenListEl.appendChild(li);
+                    });
+                }
 
-                const deptListEl = document.getElementById('stats-ma-depts');
-                deptListEl.innerHTML = '';
-                sortedDepts.forEach(([name, count]) => {
-                    const li = document.createElement('li');
-                    li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
-                    li.innerHTML = `<span>${name}</span> <span class="font-bold text-white">${count}</span>`;
-                    deptListEl.appendChild(li);
-                });
+                // Render Received List
+                const sortedReceived = Object.entries(maReceivedDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
+                const receivedListEl = document.getElementById('stats-ma-received-list');
+                receivedListEl.innerHTML = '';
+                
+                if (sortedReceived.length === 0) {
+                    receivedListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
+                } else {
+                    sortedReceived.forEach(([name, count]) => {
+                        const li = document.createElement('li');
+                        li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
+                        li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
+                        receivedListEl.appendChild(li);
+                    });
+                }
+            }
+
+            // --- DISTRICT STATS ---
+            const wDistricts = document.getElementById('widget-districts');
+            // Assuming always show for now
+            if(wDistricts) {
+                 const distCounts = {};
+                 thisYearCalls.forEach(c => {
+                     const d = c.district || 'UNSPECIFIED';
+                     distCounts[d] = (distCounts[d] || 0) + 1;
+                 });
+                 
+                 const sortedDist = Object.entries(distCounts).sort((a,b) => b[1] - a[1]);
+                 const distListEl = document.getElementById('stats-districts');
+                 distListEl.innerHTML = '';
+                 
+                 if (sortedDist.length === 0) {
+                     distListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+                 } else {
+                     const maxCount = sortedDist[0][1];
+                     sortedDist.forEach(([name, count]) => {
+                         const barWidth = (count / maxCount) * 100;
+                         const row = document.createElement('div');
+                         row.innerHTML = `
+                            <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                                <span>${name}</span>
+                                <span>${count}</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                            </div>
+                         `;
+                         distListEl.appendChild(row);
+                     });
+                 }
             }
 
             const wCrew = document.getElementById('widget-crew');
             const wVolDispo = document.getElementById('widget-voldispo');
 
-            let dayCrewCount = 0;
-            let volunteerCount = 0;
             const volDispCounts = {};
-
-            document.getElementById('stats-sched-text-wd').textContent = `M-F: ${String(wdStart).padStart(2,'0')}:00 - ${String(wdEnd).padStart(2,'0')}:00 (Day Crew)`;
-            document.getElementById('stats-sched-text-we').textContent = `S-S: ${String(weStart).padStart(2,'0')}:00 - ${String(weEnd).padStart(2,'0')}:00 (Day Crew)`;
 
             thisYearCalls.forEach(c => {
                 if (c.responseType === 'Fire') return;
-                const isDayCrew = checkDayCrew(c);
-                if (isDayCrew) {
-                    dayCrewCount++;
-                } else {
-                    volunteerCount++;
-                    const disp = c.emsDisposition || 'NOT RECORDED';
-                    volDispCounts[disp] = (volDispCounts[disp] || 0) + 1;
-                }
+                const disp = c.emsDisposition || 'NOT RECORDED';
+                volDispCounts[disp] = (volDispCounts[disp] || 0) + 1;
             });
 
             if (!config.showCrew) {
                 wCrew.classList.add('hidden');
             } else {
-                wCrew.classList.remove('hidden');
-                document.getElementById('stat-crew-day').textContent = dayCrewCount;
-                document.getElementById('stat-crew-vol').textContent = volunteerCount;
+                wCrew.classList.add('hidden'); // Hidden as differentiation removed
             }
 
             if (!config.showVolDispo) {
