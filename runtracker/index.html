@@ -7,11 +7,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/6cwN2fbb/icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="SPRINGFIELD">
+    <meta name="apple-mobile-web-app-title" content="SPFLD TWP">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -68,7 +66,6 @@
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col">
 
-    <!-- Navbar -->
     <nav class="bg-gray-800 border-b border-gray-700 p-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-[95%] mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -94,10 +91,8 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="flex-grow p-4 max-w-[95%] mx-auto w-full">
         
-        <!-- ENTRY FORM TAB -->
         <div id="tab-entry" class="fade-in max-w-2xl mx-auto">
             <div class="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
                 <div class="bg-gray-750 p-6 border-b border-gray-700 flex justify-between items-center bg-gradient-to-r from-gray-800 to-gray-750">
@@ -110,7 +105,6 @@
                 
                 <form id="callForm" class="p-6 space-y-6">
                     
-                    <!-- Date & Time Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Dispatch Date</label>
@@ -123,18 +117,15 @@
                         </div>
                     </div>
 
-                    <!-- Nature & Type Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Call Nature</label>
                             <input list="natures" id="callNature" oninput="forceCaps(this)" required placeholder="SELECT OR TYPE..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase">
-                            <!-- Populated dynamically now -->
                             <datalist id="natures"></datalist>
                         </div>
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Response Type</label>
-                                <!-- Button Group for Response Type -->
                                 <div class="grid grid-cols-3 gap-3">
                                     <button type="button" onclick="selectType('EMS')" id="btn-ems" class="flex items-center justify-center py-2.5 rounded-lg font-bold border border-gray-600 bg-gray-800 text-gray-400 hover:bg-gray-700 transition uppercase">
                                         <i class="fa-solid fa-star-of-life mr-2"></i>EMS
@@ -146,11 +137,9 @@
                                         <i class="fa-solid fa-layer-group mr-2"></i>Both
                                     </button>
                                 </div>
-                                <!-- Hidden input to store value for form submission -->
                                 <input type="hidden" id="responseType" value="EMS">
                             </div>
 
-                            <!-- EMS Disposition (Hidden by default) -->
                             <div id="emsDispositionSection" class="hidden animate-fade-in-down">
                                 <label class="block text-sm font-medium text-blue-400 mb-1 uppercase tracking-wider">EMS Disposition</label>
                                 <select id="emsDisposition" class="w-full bg-gray-900 border border-blue-500 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none transition uppercase">
@@ -167,7 +156,6 @@
                         </div>
                     </div>
 
-                    <!-- District & Address Row -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
@@ -181,30 +169,23 @@
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
-                            <!-- Custom Relative Container for Dropdown -->
                             <div class="relative">
                                 <input type="text" id="address" oninput="forceCaps(this)" required placeholder="1234 MAIN ST..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase" autocomplete="off">
                                 
-                                <!-- Custom Suggestion Dropdown (Hidden by default) -->
                                 <div id="addressSuggestions" class="absolute w-full bg-gray-800 border border-gray-600 rounded-lg shadow-2xl z-50 hidden mt-1 max-h-48 overflow-y-auto">
-                                    <!-- Items injected via JS -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Units -->
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Units Responded</label>
-                        <!-- Quick Select Chips -->
                         <div id="unitChips" class="flex flex-wrap gap-2 mb-2 uppercase">
-                            <!-- Injected by JS -->
-                        </div>
+                            </div>
                         <input type="text" id="units" oninput="forceCaps(this)" placeholder="E.G. E1, M2, C501..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase">
                         <p class="text-xs text-gray-500 mt-1 uppercase">Tap chips above to add, or type manually.</p>
                     </div>
 
-                    <!-- Mutual Aid Section -->
                     <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
                         <div class="flex items-center gap-3 mb-4">
                             <input type="checkbox" id="mutualAid" name="mutualAid" class="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-600 bg-gray-800" onchange="toggleMutualAid()">
@@ -221,23 +202,19 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 mb-1 uppercase">Department</label>
-                                <!-- Chips for Depts (Hidden unless Received) -->
                                 <div id="deptChips" class="hidden flex flex-wrap gap-2 mb-2 transition-all uppercase">
-                                    <!-- Injected by JS -->
-                                </div>
+                                    </div>
                                 <input list="maDepts" type="text" id="mutualAidDept" name="mutualAidDept" oninput="forceCaps(this)" placeholder="DEPARTMENT NAME" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-red-500 uppercase">
                                 <datalist id="maDepts"></datalist>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Notes -->
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Notes (Optional)</label>
                         <textarea id="notes" oninput="forceCaps(this)" rows="3" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase"></textarea>
                     </div>
 
-                    <!-- Actions -->
                     <div class="pt-4 flex items-center justify-end gap-4 border-t border-gray-700">
                         <button type="button" onclick="resetForm()" class="text-gray-400 hover:text-white text-sm uppercase">Clear Form</button>
                         <button type="submit" id="submitBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg transform active:scale-95 transition flex items-center gap-2 uppercase tracking-wide">
@@ -249,22 +226,17 @@
             </div>
         </div>
 
-        <!-- HISTORY TAB -->
         <div id="tab-history" class="hidden fade-in space-y-6">
             
-            <!-- Toolbar: Import/Export, Search, Filters -->
             <div class="bg-gray-800 rounded-xl border border-gray-700 p-4 shadow-lg flex flex-col space-y-4">
                 
-                <!-- Top Row: Buttons & Search -->
                 <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div class="flex items-center gap-2 w-full md:w-auto">
-                        <!-- Export Button -->
                         <button onclick="exportToCSV()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg border border-blue-500 transition flex items-center gap-2 uppercase shadow-md">
                             <i class="fa-solid fa-download"></i>
                             <span class="hidden sm:inline">Export CSV</span>
                         </button>
 
-                        <!-- Import Button -->
                         <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium px-4 py-2 rounded-lg border border-gray-600 transition flex items-center gap-2 uppercase">
                             <i class="fa-solid fa-file-csv"></i>
                             <span class="hidden sm:inline">Import CSV</span>
@@ -281,11 +253,9 @@
                     </div>
                 </div>
 
-                <!-- Advanced Filter Panel (Hidden by default) -->
                 <div id="filterPanel" class="hidden border-t border-gray-700 pt-4 animate-fade-in-down">
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         
-                        <!-- Date Range -->
                         <div class="col-span-1 lg:col-span-2">
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Date Range</label>
                             <div class="flex gap-2">
@@ -295,7 +265,6 @@
                             </div>
                         </div>
 
-                        <!-- Type -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Response Type</label>
                             <select id="filterType" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
@@ -306,13 +275,11 @@
                             </select>
                         </div>
 
-                        <!-- Nature -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Nature</label>
                             <input type="text" id="filterNature" list="natures" oninput="forceCaps(this); renderTable()" placeholder="ANY" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
                         </div>
 
-                        <!-- Disposition -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Disposition</label>
                             <select id="filterDisposition" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
@@ -327,7 +294,6 @@
                             </select>
                         </div>
 
-                        <!-- District (NEW FILTER) -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">District</label>
                             <select id="filterDistrict" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
@@ -339,7 +305,6 @@
                             </select>
                         </div>
 
-                        <!-- Mutual Aid -->
                         <div>
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Mutual Aid</label>
                             <select id="filterMutual" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
@@ -351,7 +316,6 @@
                             </select>
                         </div>
 
-                        <!-- Units -->
                         <div class="lg:col-span-2">
                             <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Units</label>
                             <input type="text" id="filterUnits" oninput="forceCaps(this); renderTable()" placeholder="CONTAINS..." class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
@@ -364,7 +328,6 @@
                 </div>
             </div>
 
-            <!-- Table -->
             <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg overflow-hidden flex flex-col h-[650px]">
                 <div class="p-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
                     <h3 class="font-bold text-lg uppercase tracking-wide">Call Log</h3>
@@ -408,8 +371,7 @@
                             </tr>
                         </thead>
                         <tbody id="historyTableBody" class="divide-y divide-gray-700 text-sm text-gray-300 uppercase cursor-pointer">
-                            <!-- Rows injected here -->
-                        </tbody>
+                            </tbody>
                     </table>
                     <div id="emptyState" class="hidden p-10 text-center text-gray-500">
                         <i class="fa-solid fa-filter text-4xl mb-3 opacity-50"></i>
@@ -419,10 +381,8 @@
             </div>
         </div>
 
-        <!-- STATISTICS TAB -->
         <div id="tab-stats" class="hidden fade-in space-y-6">
             
-            <!-- Year Selector Header -->
             <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="text-xl font-bold text-white uppercase tracking-wide flex items-center">
                     <i class="fa-solid fa-chart-pie mr-2 text-red-500"></i>
@@ -431,12 +391,10 @@
                 <div class="flex items-center gap-2">
                     <label class="text-xs text-gray-400 uppercase font-bold">Select Year:</label>
                     <select id="statsYearSelect" onchange="handleStatsYearChange(this)" class="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2 uppercase font-bold min-w-[100px]">
-                        <!-- Options injected via JS -->
-                    </select>
+                        </select>
                 </div>
             </div>
 
-            <!-- Summary Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-lg">
                     <h3 class="text-gray-400 text-sm uppercase font-bold tracking-wider">Total Calls</h3>
@@ -452,71 +410,57 @@
                 </div>
             </div>
 
-            <!-- Monthly Breakdown (NEW) -->
             <div id="widget-monthly" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
                 <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">Monthly Breakdown</h3>
                 <div id="stats-monthly" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <!-- Populated by JS -->
                     <div class="text-gray-500 text-sm italic">No data available</div>
                 </div>
             </div>
 
-            <!-- Detailed Stats Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <!-- Top Natures -->
                 <div id="widget-natures" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
                     <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">Top Call Natures</h3>
                     <div id="stats-natures" class="space-y-3">
-                        <!-- Populated by JS -->
                         <div class="text-gray-500 text-sm italic">No data available</div>
                     </div>
                 </div>
 
-                <!-- Top Addresses (NEW) -->
                 <div id="widget-addresses" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
                     <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">Top Addresses</h3>
                     <div id="stats-addresses" class="space-y-3">
-                        <!-- Populated by JS -->
                         <div class="text-gray-500 text-sm italic">No data available</div>
                     </div>
                 </div>
 
-                <!-- Mutual Aid Stats (UPDATED) -->
                 <div id="widget-mutual" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
-                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Mutual Aid Breakdown</h3>
+                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">Mutual Aid Breakdown</h3>
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <!-- Given Box -->
                         <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
                             <span class="block text-gray-400 text-xs uppercase font-bold mb-1">Given (To)</span>
                             <span id="stat-ma-given" class="text-3xl font-bold text-yellow-400 block mb-2">0</span>
                         </div>
                         
-                        <!-- Received Box -->
                         <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
                             <span class="block text-gray-400 text-xs uppercase font-bold mb-1">Received (From)</span>
                             <span id="stat-ma-received" class="text-3xl font-bold text-green-400 block mb-2">0</span>
                         </div>
                     </div>
                     
-                    <!-- Split Lists for Mutual Aid -->
                     <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
                         <div>
                             <h4 class="text-xs text-yellow-500 uppercase font-bold mb-2 flex items-center gap-1"><i class="fa-solid fa-arrow-right"></i> Given To</h4>
                             <ul id="stats-ma-given-list" class="text-sm space-y-1 text-gray-300">
-                                <!-- Populated by JS -->
-                            </ul>
+                                </ul>
                         </div>
                         <div>
                             <h4 class="text-xs text-green-500 uppercase font-bold mb-2 flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> Rec'd From</h4>
                             <ul id="stats-ma-received-list" class="text-sm space-y-1 text-gray-300">
-                                <!-- Populated by JS -->
-                            </ul>
+                                </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- NEW: District Analysis Widget (Replaces Crew Stats) -->
                 <div id="widget-districts" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
                     <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">District Analysis</h3>
                     <div id="stats-districts" class="space-y-3">
@@ -524,7 +468,6 @@
                     </div>
                 </div>
 
-                <!-- EMS Disposition Stats (Renamed) -->
                 <div id="widget-voldispo" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
                     <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Disposition Analysis</h3>
                     <div id="stats-vol-dispo" class="space-y-3">
@@ -538,7 +481,6 @@
 
     </main>
 
-    <!-- EDIT MODAL -->
     <div id="editModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-gray-800 w-full max-w-2xl rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[90vh]">
             
@@ -557,10 +499,8 @@
 
             <div class="p-6 overflow-y-auto space-y-6">
                 
-                <!-- ID Hidden -->
                 <input type="hidden" id="edit_docId">
 
-                <!-- Date & Time Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Dispatch Date</label>
@@ -572,7 +512,6 @@
                     </div>
                 </div>
 
-                <!-- Nature & Type Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Call Nature</label>
@@ -589,7 +528,6 @@
                             <input type="hidden" id="edit_responseType">
                         </div>
 
-                        <!-- Edit EMS Disposition (Hidden by default) -->
                         <div id="edit_emsDispositionSection" class="hidden animate-fade-in-down">
                             <label class="block text-sm font-medium text-blue-400 mb-1 uppercase tracking-wider">EMS Disposition</label>
                             <select id="edit_emsDisposition" class="w-full bg-gray-900 border border-blue-500 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none transition uppercase">
@@ -606,7 +544,6 @@
                     </div>
                 </div>
 
-                <!-- District & Address -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="md:col-span-1">
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
@@ -624,17 +561,13 @@
                     </div>
                 </div>
 
-                <!-- Units -->
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Units Responded</label>
-                    <!-- Quick Select Chips for Edit -->
                     <div id="edit_unitChips" class="flex flex-wrap gap-2 mb-2 uppercase">
-                        <!-- Populated by JS -->
-                    </div>
+                        </div>
                     <input type="text" id="edit_units" oninput="forceCaps(this)" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase">
                 </div>
 
-                <!-- Mutual Aid Section -->
                 <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
                     <div class="flex items-center gap-3 mb-4">
                         <input type="checkbox" id="edit_mutualAid" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-600 bg-gray-800" onchange="toggleEditMutualAid()">
@@ -652,14 +585,12 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-400 mb-1 uppercase">Department</label>
                             <div id="edit_deptChips" class="hidden flex flex-wrap gap-2 mb-2 transition-all uppercase">
-                                <!-- Injected by JS -->
-                            </div>
+                                </div>
                             <input list="maDepts" type="text" id="edit_mutualAidDept" oninput="forceCaps(this)" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 uppercase">
                         </div>
                     </div>
                 </div>
 
-                <!-- Notes -->
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Notes</label>
                     <textarea id="edit_notes" oninput="forceCaps(this)" rows="3" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase"></textarea>
@@ -677,13 +608,11 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
         <i class="fa-solid fa-check-circle"></i>
         <span id="toastMessage" class="uppercase font-bold text-sm">Action Successful</span>
     </div>
 
-    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1785,144 +1714,157 @@
             const limit = config.limit || 5;
 
             const wNatures = document.getElementById('widget-natures');
-            if (!config.showNatures) {
-                wNatures.classList.add('hidden');
-            } else {
-                wNatures.classList.remove('hidden');
-                const natureCounts = {};
-                thisYearCalls.forEach(c => {
-                    const n = c.callNature || 'UNKNOWN';
-                    natureCounts[n] = (natureCounts[n] || 0) + 1;
-                });
-                const sortedNatures = Object.entries(natureCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, limit); 
-                const natureListEl = document.getElementById('stats-natures');
-                natureListEl.innerHTML = '';
-                if (sortedNatures.length === 0) {
-                    natureListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+            if (wNatures) {
+                if (!config.showNatures) {
+                    wNatures.classList.add('hidden');
                 } else {
-                    const maxCount = sortedNatures[0][1];
-                    sortedNatures.forEach(([name, count]) => {
-                        const barWidth = (count / maxCount) * 100; 
-                        const row = document.createElement('div');
-                        row.innerHTML = `
-                            <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
-                                <span>${name}</span>
-                                <span>${count}</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
-                            </div>
-                        `;
-                        natureListEl.appendChild(row);
+                    wNatures.classList.remove('hidden');
+                    const natureCounts = {};
+                    thisYearCalls.forEach(c => {
+                        const n = c.callNature || 'UNKNOWN';
+                        natureCounts[n] = (natureCounts[n] || 0) + 1;
                     });
+                    const sortedNatures = Object.entries(natureCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, limit); 
+                    const natureListEl = document.getElementById('stats-natures');
+                    if (natureListEl) {
+                        natureListEl.innerHTML = '';
+                        if (sortedNatures.length === 0) {
+                            natureListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+                        } else {
+                            const maxCount = sortedNatures[0][1];
+                            sortedNatures.forEach(([name, count]) => {
+                                const barWidth = (count / maxCount) * 100; 
+                                const row = document.createElement('div');
+                                row.innerHTML = `
+                                    <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                                        <span>${name}</span>
+                                        <span>${count}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                                    </div>
+                                `;
+                                natureListEl.appendChild(row);
+                            });
+                        }
+                    }
                 }
             }
 
             const wAddresses = document.getElementById('widget-addresses');
-            if (!config.showAddresses) {
-                wAddresses.classList.add('hidden');
-            } else {
-                wAddresses.classList.remove('hidden');
-                const addressCounts = {};
-                thisYearCalls.forEach(c => {
-                    let addr = c.address ? c.address.trim().toUpperCase() : 'UNKNOWN';
-                    if (addr.includes('I 70')) addr = 'I 70'; 
-                    if (addr !== 'UNKNOWN' && addr !== '') addressCounts[addr] = (addressCounts[addr] || 0) + 1;
-                });
-                const sortedAddresses = Object.entries(addressCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, limit); 
-                const addrListEl = document.getElementById('stats-addresses');
-                addrListEl.innerHTML = '';
-                if (sortedAddresses.length === 0) {
-                    addrListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+            if (wAddresses) {
+                if (!config.showAddresses) {
+                    wAddresses.classList.add('hidden');
                 } else {
-                    const maxAddrCount = sortedAddresses[0][1];
-                    sortedAddresses.forEach(([addr, count]) => {
-                        const barWidth = (count / maxAddrCount) * 100;
-                        const row = document.createElement('div');
-                        row.innerHTML = `
-                            <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
-                                <span class="truncate pr-2" title="${addr}">${addr}</span>
-                                <span>${count}</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
-                            </div>
-                        `;
-                        addrListEl.appendChild(row);
+                    wAddresses.classList.remove('hidden');
+                    const addressCounts = {};
+                    thisYearCalls.forEach(c => {
+                        let addr = c.address ? c.address.trim().toUpperCase() : 'UNKNOWN';
+                        if (addr.includes('I 70')) addr = 'I 70'; 
+                        if (addr !== 'UNKNOWN' && addr !== '') addressCounts[addr] = (addressCounts[addr] || 0) + 1;
                     });
+                    const sortedAddresses = Object.entries(addressCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, limit); 
+                    const addrListEl = document.getElementById('stats-addresses');
+                    if (addrListEl) {
+                        addrListEl.innerHTML = '';
+                        if (sortedAddresses.length === 0) {
+                            addrListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+                        } else {
+                            const maxAddrCount = sortedAddresses[0][1];
+                            sortedAddresses.forEach(([addr, count]) => {
+                                const barWidth = (count / maxAddrCount) * 100;
+                                const row = document.createElement('div');
+                                row.innerHTML = `
+                                    <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                                        <span class="truncate pr-2" title="${addr}">${addr}</span>
+                                        <span>${count}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                                    </div>
+                                `;
+                                addrListEl.appendChild(row);
+                            });
+                        }
+                    }
                 }
             }
 
             const wMutual = document.getElementById('widget-mutual');
-            if (!config.showMutual) {
-                wMutual.classList.add('hidden');
-            } else {
-                wMutual.classList.remove('hidden');
-                let givenCount = 0;
-                let receivedCount = 0;
-                const maGivenDepts = {};
-                const maReceivedDepts = {};
+            if (wMutual) {
+                if (!config.showMutual) {
+                    wMutual.classList.add('hidden');
+                } else {
+                    wMutual.classList.remove('hidden');
+                    let givenCount = 0;
+                    let receivedCount = 0;
+                    const maGivenDepts = {};
+                    const maReceivedDepts = {};
 
-                thisYearCalls.forEach(c => {
-                    if (c.responseType === 'Fire') return;
-                    if (c.mutualAid) {
-                        if (c.mutualAidType === 'Given') {
-                            givenCount++;
+                    thisYearCalls.forEach(c => {
+                        // Removed: if (c.responseType === 'Fire') return; 
+                        // Now tracking mutual aid for ALL types
+                        if (c.mutualAid) {
+                            if (c.mutualAidType === 'Given') {
+                                givenCount++;
+                            }
+                            if (c.mutualAidType === 'Received') {
+                                receivedCount++;
+                            }
+                            if (c.mutualAidDept) {
+                                const depts = c.mutualAidDept.split(',').map(s => s.trim());
+                                depts.forEach(d => {
+                                    if(!d) return;
+                                    if (c.mutualAidType === 'Given') {
+                                        maGivenDepts[d] = (maGivenDepts[d] || 0) + 1;
+                                    } else {
+                                        maReceivedDepts[d] = (maReceivedDepts[d] || 0) + 1;
+                                    }
+                                });
+                            }
                         }
-                        if (c.mutualAidType === 'Received') {
-                            receivedCount++;
-                        }
-                        if (c.mutualAidDept) {
-                            const depts = c.mutualAidDept.split(',').map(s => s.trim());
-                            depts.forEach(d => {
-                                if(!d) return;
-                                if (c.mutualAidType === 'Given') {
-                                    maGivenDepts[d] = (maGivenDepts[d] || 0) + 1;
-                                } else {
-                                    maReceivedDepts[d] = (maReceivedDepts[d] || 0) + 1;
-                                }
+                    });
+
+                    document.getElementById('stat-ma-given').textContent = givenCount;
+                    document.getElementById('stat-ma-received').textContent = receivedCount;
+
+                    // Render Given List
+                    const sortedGiven = Object.entries(maGivenDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
+                    const givenListEl = document.getElementById('stats-ma-given-list');
+                    if (givenListEl) {
+                        givenListEl.innerHTML = '';
+                        if (sortedGiven.length === 0) {
+                            givenListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
+                        } else {
+                            sortedGiven.forEach(([name, count]) => {
+                                const li = document.createElement('li');
+                                li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
+                                li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
+                                givenListEl.appendChild(li);
                             });
                         }
                     }
-                });
 
-                document.getElementById('stat-ma-given').textContent = givenCount;
-                document.getElementById('stat-ma-received').textContent = receivedCount;
-
-                // Render Given List
-                const sortedGiven = Object.entries(maGivenDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
-                const givenListEl = document.getElementById('stats-ma-given-list');
-                givenListEl.innerHTML = '';
-                
-                if (sortedGiven.length === 0) {
-                    givenListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
-                } else {
-                    sortedGiven.forEach(([name, count]) => {
-                        const li = document.createElement('li');
-                        li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
-                        li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
-                        givenListEl.appendChild(li);
-                    });
-                }
-
-                // Render Received List
-                const sortedReceived = Object.entries(maReceivedDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
-                const receivedListEl = document.getElementById('stats-ma-received-list');
-                receivedListEl.innerHTML = '';
-                
-                if (sortedReceived.length === 0) {
-                    receivedListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
-                } else {
-                    sortedReceived.forEach(([name, count]) => {
-                        const li = document.createElement('li');
-                        li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
-                        li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
-                        receivedListEl.appendChild(li);
-                    });
+                    // Render Received List
+                    const sortedReceived = Object.entries(maReceivedDepts).sort((a, b) => b[1] - a[1]).slice(0, limit); 
+                    const receivedListEl = document.getElementById('stats-ma-received-list');
+                    if (receivedListEl) {
+                        receivedListEl.innerHTML = '';
+                        if (sortedReceived.length === 0) {
+                            receivedListEl.innerHTML = '<li class="text-gray-500 text-xs italic">No data</li>';
+                        } else {
+                            sortedReceived.forEach(([name, count]) => {
+                                const li = document.createElement('li');
+                                li.className = "flex justify-between border-b border-gray-700 py-1 last:border-0";
+                                li.innerHTML = `<span class="uppercase font-medium truncate pr-2" title="${name}">${name}</span> <span class="bg-gray-700 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${count}</span>`;
+                                receivedListEl.appendChild(li);
+                            });
+                        }
+                    }
                 }
             }
 
@@ -1938,32 +1880,32 @@
                  
                  const sortedDist = Object.entries(distCounts).sort((a,b) => b[1] - a[1]);
                  const distListEl = document.getElementById('stats-districts');
-                 distListEl.innerHTML = '';
-                 
-                 if (sortedDist.length === 0) {
-                     distListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
-                 } else {
-                     const maxCount = sortedDist[0][1];
-                     sortedDist.forEach(([name, count]) => {
-                         const barWidth = (count / maxCount) * 100;
-                         const row = document.createElement('div');
-                         row.innerHTML = `
-                            <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
-                                <span>${name}</span>
-                                <span>${count}</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
-                            </div>
-                         `;
-                         distListEl.appendChild(row);
-                     });
+                 if(distListEl) {
+                     distListEl.innerHTML = '';
+                     
+                     if (sortedDist.length === 0) {
+                         distListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+                     } else {
+                         const maxCount = sortedDist[0][1];
+                         sortedDist.forEach(([name, count]) => {
+                             const barWidth = (count / maxCount) * 100;
+                             const row = document.createElement('div');
+                             row.innerHTML = `
+                                <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                                    <span>${name}</span>
+                                    <span>${count}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                                </div>
+                             `;
+                             distListEl.appendChild(row);
+                         });
+                     }
                  }
             }
 
-            const wCrew = document.getElementById('widget-crew');
             const wVolDispo = document.getElementById('widget-voldispo');
-
             const volDispCounts = {};
 
             thisYearCalls.forEach(c => {
@@ -1972,39 +1914,38 @@
                 volDispCounts[disp] = (volDispCounts[disp] || 0) + 1;
             });
 
-            if (!config.showCrew) {
-                wCrew.classList.add('hidden');
-            } else {
-                wCrew.classList.add('hidden'); // Hidden as differentiation removed
-            }
-
-            if (!config.showVolDispo) {
-                wVolDispo.classList.add('hidden');
-            } else {
-                wVolDispo.classList.remove('hidden');
-                const volDispListEl = document.getElementById('stats-vol-dispo');
-                volDispListEl.innerHTML = '';
-                const sortedVolDisps = Object.entries(volDispCounts)
-                    .sort((a, b) => b[1] - a[1]); 
-
-                if (sortedVolDisps.length === 0) {
-                    volDispListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+            // FIXED: Removed missing 'widget-crew' reference and added safety check for volDispo
+            if (wVolDispo) {
+                if (!config.showVolDispo) {
+                    wVolDispo.classList.add('hidden');
                 } else {
-                    const maxCount = sortedVolDisps[0][1];
-                    sortedVolDisps.forEach(([name, count]) => {
-                        const barWidth = (count / maxCount) * 100;
-                        const row = document.createElement('div');
-                        row.innerHTML = `
-                            <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
-                                <span>${name}</span>
-                                <span>${count}</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-orange-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
-                            </div>
-                        `;
-                        volDispListEl.appendChild(row);
-                    });
+                    wVolDispo.classList.remove('hidden');
+                    const volDispListEl = document.getElementById('stats-vol-dispo');
+                    if (volDispListEl) {
+                        volDispListEl.innerHTML = '';
+                        const sortedVolDisps = Object.entries(volDispCounts)
+                            .sort((a, b) => b[1] - a[1]); 
+
+                        if (sortedVolDisps.length === 0) {
+                            volDispListEl.innerHTML = '<div class="text-gray-500 text-sm italic">No data available</div>';
+                        } else {
+                            const maxCount = sortedVolDisps[0][1];
+                            sortedVolDisps.forEach(([name, count]) => {
+                                const barWidth = (count / maxCount) * 100;
+                                const row = document.createElement('div');
+                                row.innerHTML = `
+                                    <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                                        <span>${name}</span>
+                                        <span>${count}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-orange-500 h-2 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                                    </div>
+                                `;
+                                volDispListEl.appendChild(row);
+                            });
+                        }
+                    }
                 }
             }
 
@@ -2028,32 +1969,34 @@
                 } catch(e) {}
             });
 
-            monthlyContainer.innerHTML = '';
-            monthlyData.forEach(d => {
-                const card = document.createElement('div');
-                card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 transition";
-                card.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1">
-                        <span class="font-bold text-gray-300 text-sm">${d.name}</span>
-                        <span class="font-bold text-white text-lg">${d.total}</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="flex flex-col items-center bg-red-900/20 p-2 rounded border border-red-900/50">
-                            <span class="text-[10px] text-red-400 font-bold uppercase mb-1">FIRE</span>
-                            <span class="text-white font-bold text-sm">${d.fire}</span>
+            if (monthlyContainer) {
+                monthlyContainer.innerHTML = '';
+                monthlyData.forEach(d => {
+                    const card = document.createElement('div');
+                    card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 transition";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1">
+                            <span class="font-bold text-gray-300 text-sm">${d.name}</span>
+                            <span class="font-bold text-white text-lg">${d.total}</span>
                         </div>
-                        <div class="flex flex-col items-center bg-blue-900/20 p-2 rounded border border-blue-900/50">
-                            <span class="text-[10px] text-blue-400 font-bold uppercase mb-1">EMS</span>
-                            <span class="text-white font-bold text-sm">${d.ems}</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="flex flex-col items-center bg-red-900/20 p-2 rounded border border-red-900/50">
+                                <span class="text-[10px] text-red-400 font-bold uppercase mb-1">FIRE</span>
+                                <span class="text-white font-bold text-sm">${d.fire}</span>
+                            </div>
+                            <div class="flex flex-col items-center bg-blue-900/20 p-2 rounded border border-blue-900/50">
+                                <span class="text-[10px] text-blue-400 font-bold uppercase mb-1">EMS</span>
+                                <span class="text-white font-bold text-sm">${d.ems}</span>
+                            </div>
+                            <div class="flex flex-col items-center bg-purple-900/20 p-2 rounded border border-purple-900/50">
+                                <span class="text-[10px] text-purple-400 font-bold uppercase mb-1">BOTH</span>
+                                <span class="text-white font-bold text-sm">${d.both}</span>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center bg-purple-900/20 p-2 rounded border border-purple-900/50">
-                            <span class="text-[10px] text-purple-400 font-bold uppercase mb-1">BOTH</span>
-                            <span class="text-white font-bold text-sm">${d.both}</span>
-                        </div>
-                    </div>
-                `;
-                monthlyContainer.appendChild(card);
-            });
+                    `;
+                    monthlyContainer.appendChild(card);
+                });
+            }
         }
 
         window.showToast = function(msg, isError = false) {
