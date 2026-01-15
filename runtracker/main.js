@@ -1101,6 +1101,157 @@ function updateStats() {
     const config = currentConfig.statsConfig || { showNatures: true, showAddresses: true, showMutual: true, showCrew: false, showVolDispo: true, limit: 5 };
     const limit = config.limit || 5;
 
+    // --- MONTHLY BREAKDOWN ---
+    const wMonthly = document.getElementById('widget-monthly');
+    const monthlyContainer = document.getElementById('stats-monthly');
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const monthlyData = months.map(m => ({ name: m, total: 0, fire: 0, ems: 0, both: 0 }));
+
+    thisYearCalls.forEach(c => {
+        if(!c.dispatchDate) return;
+        try {
+            const [y, m, d] = c.dispatchDate.split('-'); // Format YYYY-MM-DD
+            const monthIndex = parseInt(m) - 1; // 0-11
+            if(monthIndex >= 0 && monthIndex < 12) {
+                monthlyData[monthIndex].total++;
+                if(c.responseType === 'Fire') monthlyData[monthIndex].fire++;
+                else if(c.responseType === 'EMS') monthlyData[monthIndex].ems++;
+                else if(c.responseType === 'Both') monthlyData[monthIndex].both++;
+            }
+        } catch(e) {}
+    });
+
+    if (monthlyContainer) {
+        monthlyContainer.innerHTML = '';
+        monthlyData.forEach(d => {
+            const card = document.createElement('div');
+            card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 transition";
+            card.innerHTML = `
+                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1">
+                    <span class="font-bold text-gray-300 text-sm">${d.name}</span>
+                    <span class="font-bold text-white text-lg">${d.total}</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="flex flex-col items-center bg-red-900/20 p-2 rounded border border-red-900/50">
+                        <span class="text-[10px] text-red-400 font-bold uppercase mb-1">FIRE</span>
+                        <span class="text-white font-bold text-sm">${d.fire}</span>
+                    </div>
+                    <div class="flex flex-col items-center bg-blue-900/20 p-2 rounded border border-blue-900/50">
+                        <span class="text-[10px] text-blue-400 font-bold uppercase mb-1">EMS</span>
+                        <span class="text-white font-bold text-sm">${d.ems}</span>
+                    </div>
+                    <div class="flex flex-col items-center bg-purple-900/20 p-2 rounded border border-purple-900/50">
+                        <span class="text-[10px] text-purple-400 font-bold uppercase mb-1">BOTH</span>
+                        <span class="text-white font-bold text-sm">${d.both}</span>
+                    </div>
+                </div>
+            `;
+            monthlyContainer.appendChild(card);
+        });
+    }
+
+    // --- TIME ANALYSIS (DoW & HoD) ---
+    const wTimeAnalysis = document.getElementById('widget-time-analysis');
+    
+    if (wTimeAnalysis) {
+        // Data Structures
+        const dowCounts = Array(7).fill(0); // Sun=0, Mon=1...Sat=6
+        const hodCounts = Array(24).fill(0); // 0-23
+        
+        // Populate counts
+        thisYearCalls.forEach(c => {
+            if(!c.dispatchDate || !c.dispatchTime) return;
+            // Parse YYYY-MM-DD
+            const [y, m, d] = c.dispatchDate.split('-').map(Number);
+            const dateObj = new Date(y, m-1, d); // local time constructor
+            dowCounts[dateObj.getDay()]++;
+
+            const h = parseInt(c.dispatchTime.split(':')[0], 10);
+            if (!isNaN(h) && h >= 0 && h < 24) hodCounts[h]++;
+        });
+
+        // Calculate Date Range for Normalization
+        const startDate = new Date(currentStatsYear, 0, 1);
+        const now = new Date();
+        // If current year, go to today. If past year, go to Dec 31.
+        let endDate = (currentStatsYear === now.getFullYear())
+            ? now
+            : new Date(currentStatsYear, 11, 31);
+        
+        // Prevent future dates if user system time is off or something
+        if (endDate > now && currentStatsYear === now.getFullYear()) endDate = now;
+
+        // --- DoW Logic ---
+        const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        // Reorder to Mon-Sun (Mon=0 in UI, Sun=6)
+        // JS getDay(): 0=Sun, 1=Mon...
+        // Map: UI 0(Mon) -> JS 1, UI 6(Sun) -> JS 0
+        const uiOrder = [1, 2, 3, 4, 5, 6, 0];
+        
+        const dowStats = uiOrder.map(jsIndex => {
+            // Count occurrences of this weekday between startDate and endDate
+            let dayCount = 0;
+            let d = new Date(startDate);
+            // safe clone loop
+            while(d <= endDate) {
+                if(d.getDay() === jsIndex) dayCount++;
+                d.setDate(d.getDate() + 1);
+            }
+            if(dayCount === 0) dayCount = 1; // avoid div/0
+            const total = dowCounts[jsIndex];
+            const avg = total / dayCount;
+            return { name: dayNames[jsIndex], total, avg };
+        });
+
+        const dowContainer = document.getElementById('stats-dow');
+        if(dowContainer) {
+            dowContainer.innerHTML = '';
+            const maxAvg = Math.max(...dowStats.map(s => s.avg)) || 1;
+            
+            dowStats.forEach(stat => {
+                const widthPct = (stat.avg / maxAvg) * 100;
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    <div class="flex justify-between text-xs mb-1 uppercase font-semibold">
+                        <span>${stat.name}</span>
+                        <div class="flex gap-3">
+                             <span class="text-gray-400">Tot: ${stat.total}</span>
+                             <span class="text-white">Avg: ${stat.avg.toFixed(1)}</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-cyan-500 h-2 rounded-full transition-all duration-500" style="width: ${widthPct}%"></div>
+                    </div>
+                `;
+                dowContainer.appendChild(row);
+            });
+        }
+
+        // --- HoD Logic ---
+        const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+        
+        const hodContainer = document.getElementById('stats-hod');
+        if(hodContainer) {
+            hodContainer.innerHTML = '';
+            // Calculate averages
+            const hodStats = hodCounts.map(count => ({
+                count,
+                avg: count / totalDays
+            }));
+            const maxHodAvg = Math.max(...hodStats.map(s => s.avg)) || 0.01; // avoid 0
+
+            hodStats.forEach((stat, hour) => {
+                const heightPct = (stat.avg / maxHodAvg) * 100;
+                const bar = document.createElement('div');
+                // Tooltip via title
+                bar.title = `${String(hour).padStart(2,'0')}:00 - Total: ${stat.count}, Avg: ${stat.avg.toFixed(2)}`;
+                bar.className = "bg-teal-600 hover:bg-teal-400 transition-all rounded-t w-full relative group cursor-help";
+                bar.style.height = `${heightPct}%`;
+                hodContainer.appendChild(bar);
+            });
+        }
+    }
+
     const wNatures = document.getElementById('widget-natures');
     if (wNatures) {
         if (!config.showNatures) {
@@ -1334,55 +1485,6 @@ function updateStats() {
                 }
             }
         }
-    }
-
-    // --- MONTHLY BREAKDOWN ---
-    const wMonthly = document.getElementById('widget-monthly');
-    const monthlyContainer = document.getElementById('stats-monthly');
-    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-    const monthlyData = months.map(m => ({ name: m, total: 0, fire: 0, ems: 0, both: 0 }));
-
-    thisYearCalls.forEach(c => {
-        if(!c.dispatchDate) return;
-        try {
-            const [y, m, d] = c.dispatchDate.split('-'); // Format YYYY-MM-DD
-            const monthIndex = parseInt(m) - 1; // 0-11
-            if(monthIndex >= 0 && monthIndex < 12) {
-                monthlyData[monthIndex].total++;
-                if(c.responseType === 'Fire') monthlyData[monthIndex].fire++;
-                else if(c.responseType === 'EMS') monthlyData[monthIndex].ems++;
-                else if(c.responseType === 'Both') monthlyData[monthIndex].both++;
-            }
-        } catch(e) {}
-    });
-
-    if (monthlyContainer) {
-        monthlyContainer.innerHTML = '';
-        monthlyData.forEach(d => {
-            const card = document.createElement('div');
-            card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 transition";
-            card.innerHTML = `
-                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1">
-                    <span class="font-bold text-gray-300 text-sm">${d.name}</span>
-                    <span class="font-bold text-white text-lg">${d.total}</span>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div class="flex flex-col items-center bg-red-900/20 p-2 rounded border border-red-900/50">
-                        <span class="text-[10px] text-red-400 font-bold uppercase mb-1">FIRE</span>
-                        <span class="text-white font-bold text-sm">${d.fire}</span>
-                    </div>
-                    <div class="flex flex-col items-center bg-blue-900/20 p-2 rounded border border-blue-900/50">
-                        <span class="text-[10px] text-blue-400 font-bold uppercase mb-1">EMS</span>
-                        <span class="text-white font-bold text-sm">${d.ems}</span>
-                    </div>
-                    <div class="flex flex-col items-center bg-purple-900/20 p-2 rounded border border-purple-900/50">
-                        <span class="text-[10px] text-purple-400 font-bold uppercase mb-1">BOTH</span>
-                        <span class="text-white font-bold text-sm">${d.both}</span>
-                    </div>
-                </div>
-            `;
-            monthlyContainer.appendChild(card);
-        });
     }
 }
 
