@@ -1227,26 +1227,67 @@ function updateStats() {
             });
         }
 
-        // --- HoD Logic ---
+        // --- HoD Logic (TOUCH FRIENDLY UPDATE) ---
         const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
         
         const hodContainer = document.getElementById('stats-hod');
         if(hodContainer) {
-            hodContainer.innerHTML = '';
-            // Calculate averages
-            const hodStats = hodCounts.map(count => ({
-                count,
-                avg: count / totalDays
-            }));
-            const maxHodAvg = Math.max(...hodStats.map(s => s.avg)) || 0.01; // avoid 0
+            // Check for existing detail label or create it
+            let detailEl = document.getElementById('hod-detail-label');
+            if (!detailEl) {
+                detailEl = document.createElement('div');
+                detailEl.id = 'hod-detail-label';
+                detailEl.className = "flex items-center gap-3 text-xs uppercase font-mono mb-2 h-5 transition-all";
+                // Insert it before the chart container
+                hodContainer.parentNode.insertBefore(detailEl, hodContainer);
+            }
+            
+            // Reset Detail Label
+            detailEl.innerHTML = '<span class="text-gray-500 animate-pulse"><i class="fa-solid fa-arrow-down"></i> Tap bars for details</span>';
 
-            hodStats.forEach((stat, hour) => {
+            hodContainer.innerHTML = '';
+            
+            // Calculate averages
+            const hodStats = hodCounts.map((count, idx) => ({
+                count,
+                avg: count / totalDays,
+                hour: idx
+            }));
+            const maxHodAvg = Math.max(...hodStats.map(s => s.avg)) || 0.01; 
+
+            let activeBar = null;
+
+            hodStats.forEach((stat) => {
                 const heightPct = (stat.avg / maxHodAvg) * 100;
                 const bar = document.createElement('div');
-                // Tooltip via title
-                bar.title = `${String(hour).padStart(2,'0')}:00 - Total: ${stat.count}, Avg: ${stat.avg.toFixed(2)}`;
-                bar.className = "bg-teal-600 hover:bg-teal-400 transition-all rounded-t w-full relative group cursor-help";
+                
+                // Styling: added tap targets and active states
+                const baseClasses = "rounded-t w-full relative cursor-pointer transition-all duration-300";
+                const inactiveClasses = "bg-teal-700 hover:bg-teal-600 opacity-80";
+                const activeClasses = "bg-teal-400 shadow-[0_0_15px_rgba(45,212,191,0.6)] z-10 scale-y-[1.05] origin-bottom opacity-100";
+
+                bar.className = `${baseClasses} ${inactiveClasses}`;
                 bar.style.height = `${heightPct}%`;
+                
+                // Touch/Click Handler
+                bar.onclick = function() {
+                    // Reset previous
+                    if (activeBar) {
+                        activeBar.className = `${baseClasses} ${inactiveClasses}`;
+                    }
+                    // Highlight current
+                    this.className = `${baseClasses} ${activeClasses}`;
+                    activeBar = this;
+
+                    // Update details text area
+                    const h = String(stat.hour).padStart(2, '0');
+                    detailEl.innerHTML = `
+                        <span class="text-teal-400 font-bold text-sm">HR: ${h}:00</span>
+                        <span class="text-white font-bold ml-2">Total: ${stat.count}</span>
+                        <span class="text-gray-400 ml-2">Avg: ${stat.avg.toFixed(2)}</span>
+                    `;
+                };
+
                 hodContainer.appendChild(bar);
             });
         }
