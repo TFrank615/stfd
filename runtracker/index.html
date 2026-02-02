@@ -577,6 +577,90 @@
         </div>
     </div>
 
+    <div id="monthModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-gray-800 w-full max-w-4xl rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-700 bg-gray-850 flex justify-between items-center">
+                <h2 id="monthModalTitle" class="text-2xl font-bold text-white uppercase tracking-wide">MONTH DETAILS</h2>
+                <button onclick="closeMonthModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600 text-center">
+                        <span class="block text-gray-400 text-xs uppercase font-bold">Total Calls</span>
+                        <span id="monthModalTotal" class="text-3xl font-bold text-white">0</span>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600 text-center">
+                        <span class="block text-gray-400 text-xs uppercase font-bold">Fire Runs</span>
+                        <span id="monthModalFire" class="text-3xl font-bold text-red-500">0</span>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600 text-center">
+                        <span class="block text-gray-400 text-xs uppercase font-bold">EMS Runs</span>
+                        <span id="monthModalEms" class="text-3xl font-bold text-blue-400">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">Top Call Natures</h3>
+                        <div id="monthModalNatures" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                    </div>
+                    
+                     <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">Top 5 Addresses</h3>
+                        <div id="monthModalAddresses" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">District Analysis</h3>
+                        <div id="monthModalDistricts" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                    </div>
+
+                     <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">EMS Dispositions</h3>
+                        <div id="monthModalDispos" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">Day of Week (Avg)</h3>
+                        <div id="monthModalDoW" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
+                    <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">Mutual Aid Analysis</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                             <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs text-yellow-500 uppercase font-bold"><i class="fa-solid fa-arrow-right mr-1"></i> Given To</span>
+                                <span id="monthModalMaGivenCount" class="text-xl font-bold text-white">0</span>
+                             </div>
+                             <div id="monthModalMaGivenList" class="space-y-2"></div>
+                        </div>
+
+                        <div>
+                             <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs text-green-500 uppercase font-bold"><i class="fa-solid fa-arrow-left mr-1"></i> Rec'd From</span>
+                                <span id="monthModalMaReceivedCount" class="text-xl font-bold text-white">0</span>
+                             </div>
+                             <div id="monthModalMaReceivedList" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-700 bg-gray-850 flex justify-between items-center">
+                 <button id="btn-month-export" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition uppercase text-sm shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv"></i> Export CSV
+                 </button>
+                 <button onclick="closeMonthModal()" class="px-6 py-2 rounded-lg bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition uppercase">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
         <i class="fa-solid fa-check-circle"></i>
         <span id="toastMessage" class="uppercase font-bold text-sm">Action Successful</span>

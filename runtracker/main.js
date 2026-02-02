@@ -492,6 +492,143 @@ window.exportToCSV = function() {
     document.body.removeChild(link);
 }
 
+// --- EXPORT MONTH SUMMARY CSV LOGIC ---
+window.exportMonthCSV = function(monthIndex) {
+    const months = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const monthName = months[monthIndex];
+
+    // Filter Calls
+    const monthCalls = allCalls.filter(c => {
+        if(c.year !== currentStatsYear) return false;
+        if(!c.dispatchDate) return false;
+        try {
+            const m = parseInt(c.dispatchDate.split('-')[1]) - 1;
+            return m === monthIndex;
+        } catch(e) { return false; }
+    });
+
+    if (monthCalls.length === 0) {
+        showToast("NO DATA TO EXPORT", true);
+        return;
+    }
+
+    // 1. RUN TOTALS
+    const total = monthCalls.length;
+    const fire = monthCalls.filter(c => c.responseType === 'Fire' || c.responseType === 'Both').length;
+    const ems = monthCalls.filter(c => c.responseType === 'EMS' || c.responseType === 'Both').length;
+    const both = monthCalls.filter(c => c.responseType === 'Both').length;
+
+    let csv = `STFD ${monthName} ${currentStatsYear} BY THE NUMBERS,,\n,,\n`;
+    csv += `EMS RUNS,${ems},\n`;
+    csv += `FIRE RUNS,${fire},\n`;
+    csv += `BOTH,${both},\n`;
+    csv += `TOTAL RUNS,${total},\n`;
+
+    // 2. TOP CALL NATURES
+    const natures = {};
+    monthCalls.forEach(c => { const n = c.callNature || 'UNKNOWN'; natures[n] = (natures[n] || 0) + 1; });
+    const sortedNatures = Object.entries(natures).sort((a,b) => b[1]-a[1]).slice(0, 5); 
+    
+    csv += `TOP CALL NATURES,,\n`;
+    sortedNatures.forEach(([n, c]) => csv += `${n},${c},\n`);
+
+    // 3. TOP 5 ADDRESSES
+    const addresses = {};
+    monthCalls.forEach(c => {
+         let a = c.address ? c.address.trim().toUpperCase() : 'UNKNOWN';
+         if(a.includes('I 70')) a = 'I 70';
+         if(a !== 'UNKNOWN' && a !== '') addresses[a] = (addresses[a] || 0) + 1;
+    });
+    const sortedAddr = Object.entries(addresses).sort((a,b) => b[1]-a[1]).slice(0, 5);
+    
+    csv += `TOP 5 ADDRESSES,,\n`;
+    sortedAddr.forEach(([a, c]) => csv += `"${a}",${c},\n`);
+
+    // 4. DISTRICT ANALYSIS
+    const districts = {};
+    monthCalls.forEach(c => { const d = c.district || 'UNSPECIFIED'; districts[d] = (districts[d] || 0) + 1; });
+    const sortedDist = Object.entries(districts).sort((a,b) => b[1]-a[1]);
+    
+    csv += `DISTRICT ANALYSIS,,\n`;
+    sortedDist.forEach(([d, c]) => csv += `${d},${c},\n`);
+
+    // 5. EMS DISPOSITIONS
+    const dispos = {};
+    monthCalls.forEach(c => {
+        if(c.responseType === 'Fire') return;
+        const d = c.emsDisposition || 'NOT RECORDED';
+        dispos[d] = (dispos[d] || 0) + 1;
+    });
+    const sortedDispos = Object.entries(dispos).sort((a,b) => b[1]-a[1]);
+
+    csv += `EMS DISPOSITIONS,,\n`;
+    sortedDispos.forEach(([d, c]) => csv += `${d},${c},\n`);
+
+    // 6. DAY OF WEEK
+    const dowCounts = [0,0,0,0,0,0,0]; // Sun-Sat
+    monthCalls.forEach(c => {
+        if(c.dispatchDate) {
+             const [y, m, d] = c.dispatchDate.split('-').map(Number);
+             const dateObj = new Date(y, m-1, d);
+             dowCounts[dateObj.getDay()]++;
+        }
+    });
+    
+    const daysInMonth = [0,0,0,0,0,0,0];
+    const date = new Date(currentStatsYear, monthIndex, 1);
+    while(date.getMonth() === monthIndex) {
+        daysInMonth[date.getDay()]++;
+        date.setDate(date.getDate() + 1);
+    }
+
+    const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+    const reportOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon-Sun
+
+    csv += `DAY OF THE WEEK (AVG),,\nDAY,TOTAL,AVG\n`;
+    reportOrder.forEach(i => {
+        const total = dowCounts[i];
+        const avg = daysInMonth[i] > 0 ? (total / daysInMonth[i]).toFixed(1) : 0;
+        csv += `${dayNames[i]},${total},${parseFloat(avg)},\n`;
+    });
+
+    // 7. MUTUAL AID
+    let maGivenCount = 0;
+    let maReceivedCount = 0;
+    const maGivenDepts = {};
+    const maReceivedDepts = {};
+
+    monthCalls.forEach(c => {
+        if(c.mutualAid) {
+            if(c.mutualAidType === 'Given') {
+                maGivenCount++;
+                 if(c.mutualAidDept) c.mutualAidDept.split(',').forEach(d => { const x=d.trim(); if(x) maGivenDepts[x]=(maGivenDepts[x]||0)+1; });
+            } else if (c.mutualAidType === 'Received') {
+                maReceivedCount++;
+                 if(c.mutualAidDept) c.mutualAidDept.split(',').forEach(d => { const x=d.trim(); if(x) maReceivedDepts[x]=(maReceivedDepts[x]||0)+1; });
+            }
+        }
+    });
+
+    // Given
+    csv += `MUTUAL AID GIVEN,,\nTOTAL AID GIVEN,${maGivenCount},\n`;
+    Object.entries(maGivenDepts).sort((a,b)=>b[1]-a[1]).forEach(([d,c]) => csv += `${d},${c},\n`);
+
+    // Received
+    csv += `MUTUAL AID RECEIVED,,\nTOTAL AID REQUESTED,${maReceivedCount},\n`;
+    Object.entries(maReceivedDepts).sort((a,b)=>b[1]-a[1]).forEach(([d,c]) => csv += `${d},${c},\n`);
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `STFD_${monthName}_${currentStatsYear}_TOTALS.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 // --- CSV IMPORT LOGIC ---
 window.handleFileUpload = function(input) {
     const file = input.files[0];
@@ -1123,15 +1260,18 @@ function updateStats() {
 
     if (monthlyContainer) {
         monthlyContainer.innerHTML = '';
-        monthlyData.forEach(d => {
+        monthlyData.forEach((d, index) => {
             const card = document.createElement('div');
-            card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 transition";
+            // MODIFIED: Added cursor-pointer, hover effects, and onclick
+            card.className = "bg-gray-900/50 p-3 rounded border border-gray-700 flex flex-col gap-2 hover:bg-gray-800 hover:border-gray-500 transition cursor-pointer transform active:scale-95 select-none";
+            card.onclick = () => openMonthDetail(index);
+
             card.innerHTML = `
-                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-1 pointer-events-none">
                     <span class="font-bold text-gray-300 text-sm">${d.name}</span>
                     <span class="font-bold text-white text-lg">${d.total}</span>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-3 gap-2 pointer-events-none">
                     <div class="flex flex-col items-center bg-red-900/20 p-2 rounded border border-red-900/50">
                         <span class="text-[10px] text-red-400 font-bold uppercase mb-1">FIRE</span>
                         <span class="text-white font-bold text-sm">${d.fire}</span>
@@ -1144,6 +1284,9 @@ function updateStats() {
                         <span class="text-[10px] text-purple-400 font-bold uppercase mb-1">BOTH</span>
                         <span class="text-white font-bold text-sm">${d.both}</span>
                     </div>
+                </div>
+                <div class="text-center mt-1">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold"><i class="fa-solid fa-magnifying-glass mr-1"></i>View Details</span>
                 </div>
             `;
             monthlyContainer.appendChild(card);
@@ -1596,4 +1739,202 @@ window.resetForm = function() {
     toggleMutualAid(); 
     selectType('EMS'); 
     calculateNextIncidentId(); 
+}
+
+// --- MONTH DETAIL MODAL LOGIC (NEW) ---
+window.openMonthDetail = function(monthIndex) {
+    const months = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const monthName = months[monthIndex];
+    
+    // Set Title
+    document.getElementById('monthModalTitle').textContent = `${monthName} ${currentStatsYear} BREAKDOWN`;
+
+    // Filter Calls for this specific Month & Year
+    const monthCalls = allCalls.filter(c => {
+        if(c.year !== currentStatsYear) return false;
+        if(!c.dispatchDate) return false;
+        try {
+            const m = parseInt(c.dispatchDate.split('-')[1]) - 1;
+            return m === monthIndex;
+        } catch(e) { return false; }
+    });
+
+    // 1. Counts
+    const total = monthCalls.length;
+    const fire = monthCalls.filter(c => c.responseType === 'Fire' || c.responseType === 'Both').length;
+    const ems = monthCalls.filter(c => c.responseType === 'EMS' || c.responseType === 'Both').length;
+
+    document.getElementById('monthModalTotal').textContent = total;
+    document.getElementById('monthModalFire').textContent = fire;
+    document.getElementById('monthModalEms').textContent = ems;
+
+    // Helper for bars
+    const renderBars = (containerId, dataObj, limit = 10) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        const sorted = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, limit);
+        
+        if(sorted.length === 0) {
+            container.innerHTML = '<div class="text-gray-500 text-xs italic">No data</div>';
+            return;
+        }
+
+        const max = sorted[0][1];
+        sorted.forEach(([name, count]) => {
+            const pct = (count / max) * 100;
+            let colorClass = 'bg-gray-500';
+            if(containerId.includes('Natures')) colorClass = 'bg-blue-500';
+            else if(containerId.includes('Districts')) colorClass = 'bg-indigo-500';
+            else if(containerId.includes('Given')) colorClass = 'bg-yellow-500';
+            else if(containerId.includes('Received')) colorClass = 'bg-green-500';
+            else if(containerId.includes('Addresses')) colorClass = 'bg-purple-500';
+            else if(containerId.includes('Dispos')) colorClass = 'bg-orange-500';
+
+            const row = document.createElement('div');
+            row.innerHTML = `
+                <div class="flex justify-between text-[10px] uppercase mb-1">
+                    <span class="font-bold text-gray-300 truncate w-3/4" title="${name}">${name}</span>
+                    <span class="font-bold text-white">${count}</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5">
+                    <div class="${colorClass} h-1.5 rounded-full" style="width: ${pct}%"></div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    };
+
+    // 2. Natures
+    const natures = {};
+    monthCalls.forEach(c => { const n = c.callNature || 'UNKNOWN'; natures[n] = (natures[n] || 0) + 1; });
+    renderBars('monthModalNatures', natures, 5); // Limit to top 5
+
+    // 3. Top 5 Addresses (NEW)
+    const addresses = {};
+    monthCalls.forEach(c => {
+        let a = c.address ? c.address.trim().toUpperCase() : 'UNKNOWN';
+        if(a.includes('I 70')) a = 'I 70'; 
+        if(a !== 'UNKNOWN' && a !== '') addresses[a] = (addresses[a] || 0) + 1;
+    });
+    renderBars('monthModalAddresses', addresses, 5); // Limit to 5
+
+    // 4. Districts
+    const districts = {};
+    monthCalls.forEach(c => { const d = c.district || 'UNSPECIFIED'; districts[d] = (districts[d] || 0) + 1; });
+    renderBars('monthModalDistricts', districts);
+
+    // 5. EMS Dispositions (NEW)
+    const dispos = {};
+    monthCalls.forEach(c => {
+        if(c.responseType === 'Fire') return; 
+        const d = c.emsDisposition || 'NOT RECORDED';
+        dispos[d] = (dispos[d] || 0) + 1;
+    });
+    renderBars('monthModalDispos', dispos);
+
+    // 6. Day of Week Analysis
+    const dowCounts = [0,0,0,0,0,0,0]; // Sun-Sat
+    monthCalls.forEach(c => {
+        if(c.dispatchDate) {
+            try {
+                // c.dispatchDate is YYYY-MM-DD
+                // We need to parse correctly in local time or consistent UTC.
+                // The main app uses: const [y, m, d] = c.dispatchDate.split('-').map(Number); const dateObj = new Date(y, m-1, d);
+                const [y, m, d] = c.dispatchDate.split('-').map(Number);
+                const dateObj = new Date(y, m-1, d);
+                dowCounts[dateObj.getDay()]++;
+            } catch(e) {}
+        }
+    });
+
+    // Count occurrences of days in this month
+    const daysInMonth = [0,0,0,0,0,0,0];
+    const year = currentStatsYear;
+    const month = monthIndex; // 0-11
+    const date = new Date(year, month, 1);
+    while(date.getMonth() === month) {
+        daysInMonth[date.getDay()]++;
+        date.setDate(date.getDate() + 1);
+    }
+
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const uiOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon-Sun
+
+    const dowContainer = document.getElementById('monthModalDoW');
+    dowContainer.innerHTML = '';
+
+    // Find max for bar scaling (using Average)
+    let maxAvg = 0;
+    uiOrder.forEach(i => {
+        const avg = daysInMonth[i] > 0 ? dowCounts[i] / daysInMonth[i] : 0;
+        if(avg > maxAvg) maxAvg = avg;
+    });
+    if(maxAvg === 0) maxAvg = 1;
+
+    uiOrder.forEach(i => {
+        const total = dowCounts[i];
+        const avg = daysInMonth[i] > 0 ? total / daysInMonth[i] : 0;
+        const pct = (avg / maxAvg) * 100;
+
+        const row = document.createElement('div');
+        row.innerHTML = `
+            <div class="flex justify-between text-[10px] uppercase mb-1">
+                <span class="font-bold text-gray-300 w-8">${dayNames[i]}</span>
+                <div class="flex gap-2">
+                    <span class="text-gray-500">T: ${total}</span>
+                    <span class="font-bold text-white">Avg: ${avg.toFixed(1)}</span>
+                </div>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-1.5">
+                <div class="bg-cyan-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+        `;
+        dowContainer.appendChild(row);
+    });
+
+    // 7. Mutual Aid
+    let maGivenCount = 0;
+    let maReceivedCount = 0;
+    const maGivenDepts = {};
+    const maReceivedDepts = {};
+
+    monthCalls.forEach(c => {
+        if(c.mutualAid) {
+            if(c.mutualAidType === 'Given') {
+                maGivenCount++;
+                if(c.mutualAidDept) {
+                     c.mutualAidDept.split(',').forEach(d => {
+                         const clean = d.trim();
+                         if(clean) maGivenDepts[clean] = (maGivenDepts[clean] || 0) + 1;
+                     });
+                }
+            } else if (c.mutualAidType === 'Received') {
+                maReceivedCount++;
+                 if(c.mutualAidDept) {
+                     c.mutualAidDept.split(',').forEach(d => {
+                         const clean = d.trim();
+                         if(clean) maReceivedDepts[clean] = (maReceivedDepts[clean] || 0) + 1;
+                     });
+                }
+            }
+        }
+    });
+
+    document.getElementById('monthModalMaGivenCount').textContent = maGivenCount;
+    document.getElementById('monthModalMaReceivedCount').textContent = maReceivedCount;
+    
+    renderBars('monthModalMaGivenList', maGivenDepts);
+    renderBars('monthModalMaReceivedList', maReceivedDepts);
+    
+    // BIND EXPORT BUTTON
+    const exportBtn = document.getElementById('btn-month-export');
+    if(exportBtn) {
+        exportBtn.onclick = () => exportMonthCSV(monthIndex);
+    }
+
+    document.getElementById('monthModal').classList.remove('hidden');
+}
+
+window.closeMonthModal = function() {
+    document.getElementById('monthModal').classList.add('hidden');
 }
