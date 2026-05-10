@@ -161,6 +161,11 @@
                         </div>
                     </div>
 
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="workingIncident" name="workingIncident" class="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-600 bg-gray-800">
+                        <label for="workingIncident" class="font-medium text-white select-none cursor-pointer uppercase tracking-wide">Working Incident</label>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Notes (Optional)</label>
                         <textarea id="notes" oninput="forceCaps(this)" rows="3" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase"></textarea>
@@ -264,6 +269,15 @@
                                 <option value="NO">NO</option>
                                 <option value="GIVEN">GIVEN</option>
                                 <option value="RECEIVED">RECEIVED</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Working Incident</label>
+                            <select id="filterWorking" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
+                                <option value="">ANY</option>
+                                <option value="YES">YES</option>
+                                <option value="NO">NO</option>
                             </select>
                         </div>
 
@@ -560,6 +574,11 @@
                     </div>
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="edit_workingIncident" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-600 bg-gray-800">
+                    <label for="edit_workingIncident" class="font-medium text-white select-none cursor-pointer uppercase tracking-wide">Working Incident</label>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Notes</label>
                     <textarea id="edit_notes" oninput="forceCaps(this)" rows="3" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase"></textarea>
@@ -567,16 +586,11 @@
 
             </div>
 
-            <div class="p-6 border-t border-gray-700 bg-gray-850 flex justify-between items-center gap-3">
-                <button type="button" onclick="deleteCall()" class="px-4 py-2 rounded-lg bg-red-900/30 text-red-500 font-bold hover:bg-red-600 hover:text-white border border-red-500/30 transition uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Delete
+            <div class="p-6 border-t border-gray-700 bg-gray-850 flex justify-end gap-3">
+                <button onclick="closeEditModal()" class="px-6 py-2 rounded-lg bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition uppercase">Cancel</button>
+                <button onclick="saveEdit()" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg transition uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-save"></i> Save Changes
                 </button>
-                <div class="flex gap-3">
-                    <button onclick="closeEditModal()" class="px-6 py-2 rounded-lg bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition uppercase">Cancel</button>
-                    <button onclick="saveEdit()" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg transition uppercase flex items-center gap-2">
-                        <i class="fa-solid fa-save"></i> Save Changes
-                    </button>
-                </div>
             </div>
 
         </div>

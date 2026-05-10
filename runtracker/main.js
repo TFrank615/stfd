@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, writeBatch, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Config ---
 const firebaseConfig = {
@@ -91,6 +91,7 @@ window.resetFilters = function() {
     document.getElementById('filterDisposition').value = '';
     document.getElementById('filterDistrict').value = '';
     document.getElementById('filterMutual').value = '';
+    document.getElementById('filterWorking').value = '';
     document.getElementById('filterUnits').value = '';
     document.getElementById('searchInput').value = '';
     renderTable();
@@ -155,6 +156,8 @@ window.openEditModal = function(id) {
     maCheckbox.checked = call.mutualAid || false;
     toggleEditMutualAid();
     
+    document.getElementById('edit_workingIncident').checked = call.workingIncident || false;
+    
     if (call.mutualAid) {
         document.getElementById('edit_mutualAidType').value = call.mutualAidType;
         handleEditMutualAidTypeChange();
@@ -181,6 +184,7 @@ window.saveEdit = async function() {
 
     try {
         const isMutualAid = document.getElementById('edit_mutualAid').checked;
+        const isWorkingIncident = document.getElementById('edit_workingIncident').checked;
         const responseType = document.getElementById('edit_responseType').value;
         const emsDisp = (responseType === 'EMS' || responseType === 'Both') 
             ? document.getElementById('edit_emsDisposition').value 
@@ -215,6 +219,7 @@ window.saveEdit = async function() {
             mutualAid: isMutualAid,
             mutualAidType: isMutualAid ? document.getElementById('edit_mutualAidType').value : null,
             mutualAidDept: isMutualAid ? document.getElementById('edit_mutualAidDept').value.toUpperCase() : null,
+            workingIncident: isWorkingIncident,
             notes: document.getElementById('edit_notes').value.toUpperCase(),
             lastModified: new Date().toISOString(),
             lastModifiedBy: currentUser.uid
@@ -232,24 +237,6 @@ window.saveEdit = async function() {
     } catch (e) {
         console.error("Update Error:", e);
         showToast("FAILED TO UPDATE CALL", true);
-    }
-}
-
-window.deleteCall = async function() {
-    const id = document.getElementById('edit_docId').value;
-    if (!id) return;
-
-    if (confirm("Are you sure you want to permanently delete this call record? This action cannot be undone.")) {
-        try {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calls', id);
-            await deleteDoc(docRef);
-            
-            closeEditModal();
-            showToast("CALL DELETED SUCCESSFULLY");
-        } catch (e) {
-            console.error("Delete Error:", e);
-            showToast("FAILED TO DELETE CALL", true);
-        }
     }
 }
 
@@ -274,7 +261,7 @@ window.selectEditType = function(type) {
         btnFire.className = "flex items-center justify-center py-2.5 rounded-lg font-bold border border-red-500 bg-red-600 text-white shadow-lg shadow-red-900/50 transform scale-[1.02] transition uppercase text-xs";
         dispSection.classList.add('hidden');
     } else if (type === 'Both') {
-        btnBoth.className = "flex items-center justify-center py-2.5 rounded-lg font-bold border border-purple-500 bg-purple-600 text-white shadow-lg shadow-purple-900/50 transform scale-[1.02] transition uppercase text-xs";
+        btnBoth.className = "flex items-center justify-center py-2.5 rounded-lg font-bold border border-gray-600 bg-gray-800 text-gray-400 hover:bg-gray-700 transition uppercase text-xs";
         dispSection.classList.remove('hidden');
     }
 }
@@ -462,7 +449,7 @@ window.exportToCSV = function() {
         showToast("NO DATA TO EXPORT", true);
         return;
     }
-    const headers = ['Incident #', 'Date/Time', 'Nature', 'District', 'Address', 'Type', 'Units', 'Mutual Aid', 'Disposition', 'Notes'];
+    const headers = ['Incident #', 'Date/Time', 'Nature', 'District', 'Address', 'Type', 'Units', 'Mutual Aid', 'Disposition', 'Working Incident', 'Notes'];
     const rows = allCalls.map(c => {
         let reported = '';
         if (c.dispatchDate && c.dispatchTime) {
@@ -495,6 +482,7 @@ window.exportToCSV = function() {
             escapeCsv(c.units),
             escapeCsv(mutualAidStr),
             escapeCsv(c.emsDisposition),
+            c.workingIncident ? 'YES' : 'NO',
             escapeCsv(c.notes)
         ].join(',');
     });
@@ -1044,6 +1032,7 @@ if(form) {
             calculateNextIncidentId();
 
             const isMutualAid = document.getElementById('mutualAid').checked;
+            const isWorkingIncident = document.getElementById('workingIncident').checked;
             const responseType = document.getElementById('responseType').value;
             const emsDisp = (responseType === 'EMS' || responseType === 'Both') 
                 ? document.getElementById('emsDisposition').value 
@@ -1064,6 +1053,7 @@ if(form) {
                 mutualAid: isMutualAid,
                 mutualAidType: isMutualAid ? document.getElementById('mutualAidType').value : null,
                 mutualAidDept: isMutualAid ? document.getElementById('mutualAidDept').value.toUpperCase() : null,
+                workingIncident: isWorkingIncident,
                 notes: document.getElementById('notes').value.toUpperCase(),
                 createdAt: new Date().toISOString(),
                 createdBy: currentUser.uid
@@ -1106,6 +1096,7 @@ window.renderTable = function() {
     const filterDisp = document.getElementById('filterDisposition').value;
     const filterDistrict = document.getElementById('filterDistrict').value;
     const filterMutual = document.getElementById('filterMutual').value;
+    const filterWorking = document.getElementById('filterWorking').value;
     const filterUnits = document.getElementById('filterUnits').value.toUpperCase();
 
     // 2. Filter Data
@@ -1140,6 +1131,12 @@ window.renderTable = function() {
             if (filterMutual === 'YES' && !call.mutualAid) return false;
             if (filterMutual === 'GIVEN' && (!call.mutualAid || call.mutualAidType !== 'Given')) return false;
             if (filterMutual === 'RECEIVED' && (!call.mutualAid || call.mutualAidType !== 'Received')) return false;
+        }
+
+        // Working Incident
+        if (filterWorking) {
+            if (filterWorking === 'YES' && !call.workingIncident) return false;
+            if (filterWorking === 'NO' && call.workingIncident) return false;
         }
 
         return true;
@@ -1694,7 +1691,7 @@ window.showToast = function(msg, isError = false) {
     const toast = document.getElementById('toast');
     const msgEl = document.getElementById('toastMessage');
     
-    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl transform transition-all duration-300 z-50 flex items-center gap-3 ${isError ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`;
+    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3 ${isError ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`;
     msgEl.textContent = msg;
     toast.classList.remove('translate-y-20', 'opacity-0');
     setTimeout(() => {
