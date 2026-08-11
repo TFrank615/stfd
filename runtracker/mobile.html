@@ -536,6 +536,16 @@
           const appTitle = appDocument.querySelector('nav h1');
           if (appTitle) appTitle.textContent = 'RMS Call Tracker';
 
+          // Keep the edit modal's first focus on a button so iOS does not open
+          // the keyboard until the user intentionally taps an editable field.
+          const editCloseButton = appDocument.querySelector(
+            '#editModal button[aria-label="Close edit incident"]'
+          );
+          if (editCloseButton?.parentElement) {
+            editCloseButton.parentElement.prepend(editCloseButton);
+            editCloseButton.style.order = '1';
+          }
+
           frame.classList.add('ready');
           launchScreen.classList.add('hidden');
         } catch (error) {
