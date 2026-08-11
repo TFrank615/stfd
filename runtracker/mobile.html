@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="SPFLD TWP">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
   <script type="module" crossorigin src="./assets/main-BbVyfZBz.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-DlaiQHMm.js">
@@ -26,6 +26,7 @@
             --mobile-panel: #1f2937;
             --mobile-border: #374151;
             --mobile-nav-height: 68px;
+            --iphone-top-clearance: max(env(safe-area-inset-top, 0px), 54px);
         }
 
         * {
@@ -55,7 +56,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+            padding: calc(10px + var(--iphone-top-clearance)) 14px 10px;
             border-color: rgba(75, 85, 99, .75);
             background: rgba(17, 24, 39, .94);
             box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
@@ -499,10 +500,11 @@
         @media (orientation: landscape) and (max-height: 500px) {
             :root {
                 --mobile-nav-height: 58px;
+                --iphone-top-clearance: max(env(safe-area-inset-top, 0px), 8px);
             }
 
             body.mobile-page > nav {
-                padding-top: calc(6px + env(safe-area-inset-top));
+                padding-top: calc(6px + var(--iphone-top-clearance));
                 padding-bottom: 6px;
             }
 
@@ -1217,4 +1219,3 @@
 
 </body>
 </html>
-
