@@ -24,6 +24,7 @@
       --mobile-accent: #ef4444;
       --mobile-surface: #1f2937;
       --mobile-border: #374151;
+      --mobile-top-inset: max(env(safe-area-inset-top), 3.25rem);
       --mobile-bottom-nav: calc(70px + env(safe-area-inset-bottom));
     }
     html.mobile-app {
@@ -34,7 +35,7 @@
     .mobile-app body {
       min-height: 100dvh;
       background: radial-gradient(circle at 50% -12rem, rgba(220, 38, 38, 0.16), transparent 25rem), #111827;
-      overscroll-behavior-y: none;
+      overscroll-behavior-y: auto;
       -webkit-tap-highlight-color: transparent;
     }
     .mobile-app button,
@@ -43,11 +44,16 @@
     .mobile-app textarea {
       touch-action: manipulation;
     }
-    @media (max-width: 767px) {
-      .mobile-app body { padding-bottom: var(--mobile-bottom-nav); }
+    @media (max-width: 1024px) {
+      .mobile-app body:not(.modal-open) {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-bottom: var(--mobile-bottom-nav);
+        -webkit-overflow-scrolling: touch;
+      }
       .mobile-app nav {
         top: 0;
-        padding: calc(0.65rem + env(safe-area-inset-top)) 1rem 0.7rem;
+        padding: calc(var(--mobile-top-inset) + 0.4rem) 1rem 0.7rem;
         background: rgba(17, 24, 39, 0.94);
         border-bottom-color: rgba(75, 85, 99, 0.72);
         -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -204,14 +210,29 @@
         justify-content: center;
         padding-inline: 0.9rem;
       }
+      .mobile-app #tab-history {
+        min-height: calc(100dvh - var(--mobile-top-inset));
+        padding-bottom: calc(var(--mobile-bottom-nav) + 1rem);
+      }
       .mobile-app #tab-history > div:first-child { padding: 0.85rem; }
+      .mobile-app #tab-history > div:nth-child(2) {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+      }
       .mobile-app #tab-history .flex.flex-col.md\:flex-row { align-items: stretch; }
       .mobile-app #tab-history input[type="text"] { min-width: 0; }
       .mobile-app #btn-toggle-filter,
       .mobile-app #tab-history label.cursor-pointer,
       .mobile-app #tab-history button { min-height: 44px; }
-      .mobile-app #historyCallCards { padding: 0.75rem 0; }
+      .mobile-app .history-table-wrapper { display: none; }
+      .mobile-app #historyCallCards {
+        display: block;
+        overflow: visible;
+        padding: 0.75rem 0;
+      }
       .mobile-app .mobile-call-card {
+        display: block;
         border-radius: 0.95rem;
         box-shadow: 0 9px 24px rgba(0, 0, 0, 0.18);
       }
@@ -258,7 +279,7 @@
         border-radius: 0.9rem;
       }
     }
-    @media (min-width: 768px) {
+    @media (min-width: 1025px) {
       .mobile-app body::before {
         content: "This page is optimized for iPhone";
         position: fixed;
