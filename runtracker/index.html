@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>Fire/EMS Call Tracker</title>
+    <link rel="icon" type="image/png" href="./assets/icon-AV2rQ6CU.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/icon-AV2rQ6CU.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="HARMONY">
+    <meta name="apple-mobile-web-app-title" content="SPFLD TWP">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
-  <script type="module" crossorigin src="./assets/main-BbSY5fMG.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-KZ0i-0dE.js">
-  <link rel="modulepreload" crossorigin href="./assets/utils-DoHnE9If.js">
-  <link rel="stylesheet" crossorigin href="./assets/firebase-config-e-PgJT8X.css">
+  <script type="module" crossorigin src="./assets/main-BbVyfZBz.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DlaiQHMm.js">
+  <link rel="modulepreload" crossorigin href="./assets/utils-C2q0sq8J.js">
+  <link rel="stylesheet" crossorigin href="./assets/firebase-config-DFChnhM5.css">
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col">
 
@@ -100,18 +102,32 @@
                                     <option value="NO PATIENT">NO PATIENT</option>
                                     <option value="NO CREW/MA">NO CREW/MA</option>
                                     <option value="OTHER EMS XPORT">OTHER EMS XPORT</option>
-                                    <option value="75 COVERAGE">75 COVERAGE</option>
+                                    <option value="76 COVERAGE">76 COVERAGE</option>
                                     <option value="CANCELLED">CANCELLED</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
-                        <div class="relative">
-                            <input type="text" id="address" oninput="forceCaps(this)" required placeholder="1234 MAIN ST..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase" autocomplete="off">
-                            <div id="addressSuggestions" class="absolute w-full bg-gray-800 border border-gray-600 rounded-lg shadow-2xl z-50 hidden mt-1 max-h-48 overflow-y-auto"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
+                            <select id="district" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase font-bold">
+                                <option value="">SELECT</option>
+                                <option value="58">58</option>
+                                <option value="72">72</option>
+                                <option value="56">56</option>
+                                <option value="MA">MA</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
+                            <div class="relative">
+                                <input type="text" id="address" oninput="forceCaps(this)" required placeholder="1234 MAIN ST..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition uppercase" autocomplete="off">
+                                
+                                <div id="addressSuggestions" class="absolute w-full bg-gray-800 border border-gray-600 rounded-lg shadow-2xl z-50 hidden mt-1 max-h-48 overflow-y-auto">
+                                    </div>
+                            </div>
                         </div>
                     </div>
 
@@ -145,6 +161,11 @@
                                 <datalist id="maDepts"></datalist>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="workingIncident" name="workingIncident" class="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-600 bg-gray-800">
+                        <label for="workingIncident" class="font-medium text-white select-none cursor-pointer uppercase tracking-wide">Working Incident</label>
                     </div>
 
                     <div>
@@ -226,8 +247,19 @@
                                 <option value="NO PATIENT">NO PATIENT</option>
                                 <option value="NO CREW/MA">NO CREW/MA</option>
                                 <option value="OTHER EMS XPORT">OTHER EMS XPORT</option>
-                                <option value="75 COVERAGE">75 COVERAGE</option>
+                                <option value="76 COVERAGE">76 COVERAGE</option>
                                 <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 uppercase font-bold mb-1">District</label>
+                            <select id="filterDistrict" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
+                                <option value="">ANY</option>
+                                <option value="58">58</option>
+                                <option value="72">72</option>
+                                <option value="56">56</option>
+                                <option value="MA">MA</option>
                             </select>
                         </div>
 
@@ -239,6 +271,15 @@
                                 <option value="NO">NO</option>
                                 <option value="GIVEN">GIVEN</option>
                                 <option value="RECEIVED">RECEIVED</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Working Incident</label>
+                            <select id="filterWorking" onchange="renderTable()" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white uppercase">
+                                <option value="">ANY</option>
+                                <option value="YES">YES</option>
+                                <option value="NO">NO</option>
                             </select>
                         </div>
 
@@ -272,6 +313,9 @@
                                 </th>
                                 <th id="th-nature" onclick="handleSort('nature')" class="p-4 font-medium tracking-wider sortable">
                                     Nature <i class="fa-solid fa-sort sort-icon"></i>
+                                </th>
+                                <th id="th-district" onclick="handleSort('district')" class="p-4 font-medium tracking-wider sortable">
+                                    Dist <i class="fa-solid fa-sort sort-icon"></i>
                                 </th>
                                 <th id="th-address" onclick="handleSort('address')" class="p-4 font-medium tracking-wider sortable">
                                     Address <i class="fa-solid fa-sort sort-icon"></i>
@@ -408,28 +452,15 @@
                     </div>
                 </div>
 
-                <div id="widget-crew" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
-                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Crew Analysis</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
-                            <span class="block text-gray-400 text-xs uppercase font-bold">Day Crew</span>
-                            <span id="stat-crew-day" class="text-2xl font-bold text-blue-400">0</span>
-                        </div>
-                        <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700 text-center">
-                            <span class="block text-gray-400 text-xs uppercase font-bold">Volunteer</span>
-                            <span id="stat-crew-vol" class="text-2xl font-bold text-orange-400">0</span>
-                            <span id="stat-crew-vol-pct" class="block text-xs text-gray-500 font-bold mt-1">0% Handled</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-900/30 p-3 rounded border border-gray-700 text-xs text-gray-400">
-                        <p class="font-bold mb-1">SCHEDULE (EMS/BOTH ONLY):</p>
-                        <p>M-F: 06:00–18:00 · S-S: 08:00–18:00</p>
-                        <p>Holidays and all other times: Volunteer</p>
+                <div id="widget-districts" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
+                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">District Analysis</h3>
+                    <div id="stats-districts" class="space-y-3">
+                        <div class="text-gray-500 text-sm italic">No data available</div>
                     </div>
                 </div>
 
                 <div id="widget-voldispo" class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-6">
-                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Volunteer Dispositions</h3>
+                    <h3 class="font-bold text-lg text-white mb-4 uppercase border-b border-gray-700 pb-2">EMS Disposition Analysis</h3>
                     <div id="stats-vol-dispo" class="space-y-3">
                         <div class="text-gray-500 text-sm italic">No data available</div>
                     </div>
@@ -497,16 +528,28 @@
                                 <option value="NO PATIENT">NO PATIENT</option>
                                 <option value="NO CREW/MA">NO CREW/MA</option>
                                 <option value="OTHER EMS XPORT">OTHER EMS XPORT</option>
-                                <option value="75 COVERAGE">75 COVERAGE</option>
+                                <option value="76 COVERAGE">76 COVERAGE</option>
                                 <option value="CANCELLED">CANCELLED</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
-                    <input type="text" id="edit_address" list="addressHistory" oninput="forceCaps(this)" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" autocomplete="off">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">District</label>
+                        <select id="edit_district" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase font-bold">
+                            <option value="">SELECT</option>
+                            <option value="58">58</option>
+                            <option value="72">72</option>
+                            <option value="56">56</option>
+                            <option value="MA">MA</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-400 mb-1 uppercase tracking-wider">Address</label>
+                        <input type="text" id="edit_address" list="addressHistory" oninput="forceCaps(this)" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" autocomplete="off">
+                    </div>
                 </div>
 
                 <div>
@@ -537,6 +580,11 @@
                             <input list="maDepts" type="text" id="edit_mutualAidDept" oninput="forceCaps(this)" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 uppercase">
                         </div>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="edit_workingIncident" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-600 bg-gray-800">
+                    <label for="edit_workingIncident" class="font-medium text-white select-none cursor-pointer uppercase tracking-wide">Working Incident</label>
                 </div>
 
                 <div>
@@ -598,8 +646,8 @@
                     </div>
 
                     <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
-                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">Crew Coverage</h3>
-                        <div id="monthModalCrew" class="space-y-2"></div>
+                        <h3 class="font-bold text-gray-300 uppercase text-sm mb-3 border-b border-gray-700 pb-2">District Analysis</h3>
+                        <div id="monthModalDistricts" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
                     </div>
 
                      <div class="bg-gray-900/50 rounded-lg border border-gray-700 p-4">
